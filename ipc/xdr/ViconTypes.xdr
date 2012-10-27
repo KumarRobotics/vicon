@@ -1,0 +1,29 @@
+struct ViconMarker
+{
+  string name<>;
+  string subject_name<>;
+  double position[3];
+  bool occluded;
+};
+
+struct ViconSubject
+{
+  int time_sec;
+  int time_usec;
+  int frame_number;
+  string name<>;
+  bool occluded;
+  double position[3];
+  double orientation[4];
+  int num_markers;
+  ViconMarker markers<>;
+};
+
+struct ViconMarkers
+{
+  int time_sec;
+  int time_usec;
+  int frame_number;
+  int num_markers;
+  ViconMarker markers<>;
+};
