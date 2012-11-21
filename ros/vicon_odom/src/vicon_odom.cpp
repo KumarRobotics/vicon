@@ -59,7 +59,7 @@ static void vicon_callback(const vicon::Subject::ConstPtr &msg)
   if(dt > 1e-6)
   {
     Eigen::Matrix3d R_dot = (R - R_prev)/dt;
-    Eigen::Matrix3d w_hat = R_dot * R_prev.transpose();
+    Eigen::Matrix3d w_hat = R_dot * R.transpose();
 
     odom_msg.twist.twist.angular.x = w_hat(2, 1);
     odom_msg.twist.twist.angular.y = w_hat(0, 2);

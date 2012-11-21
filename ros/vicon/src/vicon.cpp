@@ -187,23 +187,27 @@ int main(int argc, char **argv)
 
   nh->param("calib_files_dir", calib_files_dir, std::string("calib"));
 
+  bool enable_unlabeled_markers;
+  nh->param("enable_unlabeled_markers", enable_unlabeled_markers, false);
+
   ros::ServiceServer set_zero_pose_srv =
       nh->advertiseService("set_zero_pose", &saveCalib);
 
   ViconDriver vd;
-  if(vd.init(vicon_server))
-  {
-    vd.setSubjectPubCallback(subject_publish_callback);
-    vd.setUnlabeledMarkersPubCallback(unlabeled_markers_publish_callback);
-    vd.enableUnlabeledMarkerData(true);
-    running = vd.start();
-  }
-  else
+  if(!vd.init(vicon_server))
   {
     ROS_ERROR("Error connecting to vicon server");
     nh->shutdown();
     return -1;
   }
+
+  vd.setSubjectPubCallback(subject_publish_callback);
+  if(enable_unlabeled_markers)
+  {
+    vd.setUnlabeledMarkersPubCallback(unlabeled_markers_publish_callback);
+    vd.enableUnlabeledMarkerData(true);
+  }
+  running = vd.start();
 
   ros::spin();
 
