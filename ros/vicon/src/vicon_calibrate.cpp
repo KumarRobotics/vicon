@@ -104,7 +104,7 @@ static void subject_callback(const vicon::Subject::ConstPtr &msg)
     current_pose.translate(t);
     current_pose.rotate(q);
 
-    zero_pose = calib_transform.inverse() * current_pose;
+    zero_pose = calib_transform * current_pose.inverse();
 
     t = zero_pose.translation();
     q = Eigen::Quaterniond(zero_pose.rotation());
@@ -140,7 +140,7 @@ static void subject_callback(const vicon::Subject::ConstPtr &msg)
 }
 
 static bool toggle_calib_callback(std_srvs::Empty::Request &req,
-                                        std_srvs::Empty::Response &res)
+                                  std_srvs::Empty::Response &res)
 {
   if(!calib_stand_ready)
   {

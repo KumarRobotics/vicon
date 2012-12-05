@@ -44,6 +44,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 
 rosbuild_add_executable(vicon src/vicon.cpp)
 add_dependencies(vicon libvicon_driver)
+rosbuild_link_boost(vicon thread system)
 target_link_libraries(vicon ${PROJECT_SOURCE_DIR}/libvicon_driver/libvicon_driver.so)
 
 rosbuild_add_executable(vicon_calibrate src/vicon_calibrate.cpp)
