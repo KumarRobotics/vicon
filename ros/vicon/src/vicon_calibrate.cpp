@@ -104,7 +104,7 @@ static void subject_callback(const vicon::Subject::ConstPtr &msg)
     current_pose.translate(t);
     current_pose.rotate(q);
 
-    zero_pose = calib_transform * current_pose.inverse();
+    zero_pose = current_pose * calib_transform.inverse();
 
     t = zero_pose.translation();
     q = Eigen::Quaterniond(zero_pose.rotation());
