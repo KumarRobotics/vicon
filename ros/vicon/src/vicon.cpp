@@ -73,7 +73,7 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
   zero_pose.translate(t);
   zero_pose.rotate(q);
 
-  zero_pose = calib_pose[req.subject_name].inverse() * zero_pose ;
+  zero_pose = calib_pose[req.subject_name].inverse() * zero_pose;
 
   std::string calib_filename = calib_files_dir + "/" + req.subject_name + ".yaml";
   if(ViconCalib::saveZeroPoseToFile(zero_pose, calib_filename))
