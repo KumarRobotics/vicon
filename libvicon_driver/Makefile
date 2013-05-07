@@ -1,4 +1,3 @@
-LIB := libvicon_driver.so
 SRC := src/vicon_driver.cpp src/vicon_calib.cpp
 
 OBJ := $(SRC:.cpp=.o)
@@ -14,16 +13,20 @@ LIBS := -lpthread -lrt `pkg-config --libs eigen3 yaml-cpp`
 uname_S := $(shell sh -c 'uname -s 2>/dev/null')
 uname_M := $(shell sh -c 'uname -m 2>/dev/null')
 
-ifneq ($(uname_S), Linux)
-$(error This driver only works on Linux since the included Vicon SDK is only for Linux)
+ifeq ($(uname_S), Linux)
+	ifeq ($(uname_M), i686)
+		VICON_SDK_DIR := $(shell pwd)/vicon_sdk/Linux32
+	else ifeq ($(uname_M), x86_64)
+		VICON_SDK_DIR := $(shell pwd)/vicon_sdk/Linux64
+	endif
+	LIB := libvicon_driver.so
+else ifeq ($(uname_S), Darwin)
+	VICON_SDK_DIR := $(shell pwd)/vicon_sdk/MacOSX
+	LIB := libvicon_driver.dylib
+else
+	$(error This driver only works on Linux since the included Vicon SDK is only for Linux)
 endif
 
-ifeq ($(uname_M), i686)
-VICON_SDK_DIR := $(shell pwd)/vicon_sdk/vicon_datastream_SDK_1.2.59611_x86
-endif
-ifeq ($(uname_M), x86_64)
-VICON_SDK_DIR := $(shell pwd)/vicon_sdk/vicon_datastream_SDK_1.2.59611_x64
-endif
 
 INCS += -I$(VICON_SDK_DIR)
 LIBS += -Wl,-rpath,$(VICON_SDK_DIR) -L$(VICON_SDK_DIR) -lViconDataStreamSDK_CPP

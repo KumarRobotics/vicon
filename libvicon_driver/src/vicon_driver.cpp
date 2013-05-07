@@ -13,7 +13,7 @@ ViconDriver::ViconDriver() :
     unlabeled_markers_callback_(NULL),
     unlabeled_marker_data_enabled_(false)
 {
-  client_ = new ViconSDK::Client;
+  client_ = new ViconSDK::Client();
 }
 
 ViconDriver::~ViconDriver()

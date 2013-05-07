@@ -12,7 +12,7 @@ MSG := $(XDR:.xdr=.h)
 
 CFLAGS := -Wall -O2 -fPIC
 CXXFLAGS := $(CFLAGS)
-LDFLAGS := -Wl,-O1 -Wl,--as-needed
+LDFLAGS := -Wl,-O1 -Wl,--as-needed -Wl,-unresolved-symbols=ignore-in-shared-libs
 
 INCS := -I../../libvicon_driver/include -Iinclude `pkg-config --cflags eigen3 yaml-cpp`
 LIBS := -Wl,-rpath,../../libvicon_driver -L../../libvicon_driver -lvicon_driver \
