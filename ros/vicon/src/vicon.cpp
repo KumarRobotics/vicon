@@ -73,7 +73,7 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
   zero_pose.translate(t);
   zero_pose.rotate(q);
 
-  zero_pose = calib_pose[req.subject_name].inverse() * zero_pose;
+  zero_pose = zero_pose * calib_pose[req.subject_name].inverse();
 
   std::string calib_filename = calib_files_dir + "/" + req.subject_name + ".yaml";
   if(ViconCalib::saveZeroPoseToFile(zero_pose, calib_filename))
@@ -117,7 +117,7 @@ static void subject_publish_callback(const ViconDriver::Subject &subject)
     Eigen::Affine3d current_pose = Eigen::Affine3d::Identity();
     current_pose.translate(Eigen::Vector3d(subject.translation));
     current_pose.rotate(Eigen::Quaterniond(subject.rotation));
-    current_pose = calib_pose[subject.name] * current_pose;
+    current_pose = current_pose * calib_pose[subject.name];
     const Eigen::Vector3d position(current_pose.translation());
     const Eigen::Quaterniond rotation(current_pose.rotation());
 
