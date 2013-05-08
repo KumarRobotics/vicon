@@ -10,12 +10,20 @@ There is also an implementation of loading/storing calib (zero pose) files in YA
 
 ### To Calibrate a Model:
 * Launch the calibrate.launch file in ./ros/vicon/launch using your ViconModelName
+
         roslaunch calibrate.launch model:=ViconModelName
+
 * In a new terminal, echo the zero_pose estimate from vicon. Note: you will not see anything yet.
+
         rostopic echo /vicon_calibrate/zero_pose
+
 * In another terminal, toggle the calibration routine:
+
         rosservice call /vicon_calibrate/toggle_calibration
+
 * Now, check to make sure the zero_pose provides reasonable values
 * Untoggle the calibration routine
+
         rosservice call /vicon_calibrate/toggle_calibration
+
 * Close the running launch files and verify that a new calibration file was written to ./ros/vicon/calib
