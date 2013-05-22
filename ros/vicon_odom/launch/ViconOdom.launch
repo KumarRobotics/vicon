@@ -1,0 +1,23 @@
+<launch>
+
+    <arg name="model" />
+
+    <node pkg="vicon_odom"
+	type="vicon_odom"
+	name="$(arg model)"
+	output="screen">
+	<remap from="~vicon" to="/vicon/$(arg model)"/>
+	<remap from="~odom" to="/vicon/$(arg model)Odom"/>
+    </node>
+
+    <node pkg="ipc_nav_msgs"
+        name="nav_msgs_Odometry_publisher$(arg model)"
+        type="nav_msgs_Odometry_publisher"
+        output="screen">
+      <remap from="~topic" to="/vicon/$(arg model)Odom"/>
+
+      <!-- Name in MATLAB -->
+      <param name="message" value="$(arg model)Odom"/>
+    </node>
+  
+</launch>
