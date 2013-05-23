@@ -8,6 +8,12 @@ This design is not be the most efficient in terms of CPU usage since you need to
 
 There is also an implementation of loading/storing calib (zero pose) files in YAML format using libyaml-cpp (see ViconCalib.h). Loading calib files automatically is implemented in both the interface layes (IPC & ROS) but the ROS interface layer also provides a service which you can call to set the zero pose and automatically save it in the calib file.
 
+### To Compile
+
+First, add the ros folder in this repository to your ROS_PACKAGE_PATH.  Then, run
+
+        rosmake vicon_odom vicon_odom
+
 ### To Calibrate a Model:
 * Launch the calibrate.launch file in ./ros/vicon/launch using your ViconModelName
 
