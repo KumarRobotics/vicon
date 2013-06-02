@@ -137,7 +137,7 @@ void *ViconDriver::grabThread(void *arg)
   struct timespec ts_now;
   int64_t last_frame_time = 0, last_frame_pub_time = 0;
   int32_t last_frame_number = 0;
-  int32_t dt = 10000; // usec, assume 100Hz by default
+  int32_t dt = 1000000/vd->client_->GetFrameRate().FrameRateHz; // usec
   const double alpha = 0.97; // For low pass filter
 
   while(vd->grab_frames_)
