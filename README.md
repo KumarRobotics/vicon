@@ -18,7 +18,7 @@ First, add the ros folder in this repository to your ROS\_PACKAGE\_PATH. Then, r
 
 * Launch the calibrate.launch file in ./ros/vicon/launch using your ViconModelName
 
-        roslaunch calibrate.launch model:=ViconModelName
+        roslaunch vicon calibrate.launch model:=ViconModelName
 
 * In a new terminal, echo the zero\_pose estimate from vicon. Note: you will not see anything yet.
 
