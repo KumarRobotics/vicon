@@ -135,10 +135,18 @@ void *ViconDriver::grabThread(void *arg)
 
   ViconSDK::Result::Enum result;
   struct timespec ts_now;
-  int64_t last_frame_time = 0, last_frame_pub_time = 0;
+  int64_t last_frame_time = 0;
   int32_t last_frame_number = 0;
-  int32_t dt = 10000; // usec, assume 100Hz by default
-  const double alpha = 0.97; // For low pass filter
+
+  double frame_rate;
+  result = vd->client_->GetFrame().Result; // Need a frame for GetFrameRate
+  if(result == ViconSDK::Result::Success)
+    frame_rate = vd->client_->GetFrameRate().FrameRateHz;
+  else
+    frame_rate = 100; // Fallback
+
+  int32_t dt = 1000000/frame_rate; // usec
+  const double alpha = 0.9; // For low pass filter
 
   while(vd->grab_frames_)
   {
@@ -147,32 +155,25 @@ void *ViconDriver::grabThread(void *arg)
     if(result != ViconSDK::Result::Success)
       continue;
 
-    double latency = vd->client_->GetLatencyTotal().Total;
+    const double latency = vd->client_->GetLatencyTotal().Total;
 
-    int64_t frame_time = (ts_now.tv_sec*1000000 + ts_now.tv_nsec/1000) - latency*1e6;
+    const int64_t expected_frame_time = (ts_now.tv_sec*1000000 + (ts_now.tv_nsec+500)/1000) - latency*1e6;
     if(last_frame_time == 0)
-      last_frame_time = frame_time - dt;
-    if(last_frame_pub_time == 0)
-      last_frame_pub_time = frame_time - dt;
+      last_frame_time = expected_frame_time - dt;
 
-    int32_t frame_number = vd->client_->GetFrameNumber().FrameNumber;
+    const int32_t frame_number = vd->client_->GetFrameNumber().FrameNumber;
     if(last_frame_number == 0)
       last_frame_number = frame_number - 1;
 
-    int32_t time_diff = frame_time - last_frame_time;
-    last_frame_time = frame_time;
-
-    int32_t frame_diff = frame_number - last_frame_number;
-    last_frame_number = frame_number;
+    const int32_t time_diff = expected_frame_time - last_frame_time;
+    const int32_t frame_diff = frame_number - last_frame_number;
 
     // Low pass filter to remove jitter noise in dt
     dt = alpha*dt + (1-alpha)*(time_diff/frame_diff);
 
-    // Note that frame time would not correspond to the actual wall clock time
-    // when the frame was received since we want to maintain the dt (got from
-    // the low pass filter) between the frames
-    frame_time = last_frame_pub_time + dt;
-    last_frame_pub_time = frame_time;
+    const int64_t frame_time = last_frame_time + frame_diff*dt;
+    last_frame_time = frame_time;
+    last_frame_number = frame_number;
 
     if(!vd->processFrame(frame_time, frame_number))
     {
