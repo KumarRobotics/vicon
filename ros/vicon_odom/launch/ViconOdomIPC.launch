@@ -1,0 +1,22 @@
+<launch>
+
+  <arg name="model" />
+
+  <!-- Launch the standard ViconOdom launch file -->
+  <include file="$(find vicon_odom)/launch/ViconOdom.launch">
+    <arg name="model" value="$(arg model)" />
+  </include>
+
+  <!-- Publish to IPC -->
+  <node pkg="ipc_nav_msgs"
+    name="nav_msgs_Odometry_publisher$(arg model)"
+    type="nav_msgs_Odometry_publisher"
+    output="screen">
+    
+    <remap from="~topic" to="$(arg model)/odom"/>
+
+    <!-- Name in MATLAB -->
+    <param name="message" value="$(arg model)Odom"/>
+  </node>
+  
+</launch>
