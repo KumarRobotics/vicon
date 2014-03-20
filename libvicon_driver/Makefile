@@ -27,7 +27,7 @@ else ifeq ($(uname_S), Darwin)
 	VICON_SDK_DIR := $(shell pwd)/vicon_sdk/MacOSX
 	LIB := libvicon_driver.dylib
 else
-	$(error This driver only works on Linux and MacOSX since the included Vicon SDK is only for present for those platforms)
+	$(error This driver only works on Linux and MacOSX since the included Vicon SDK is only present for those platforms)
 endif
 
 
