@@ -4,7 +4,7 @@ OBJ := $(SRC:.cpp=.o)
 
 CFLAGS := -Wall -Wextra -O2 -fPIC
 CXXFLAGS := $(CFLAGS)
-LDFLAGS := -Wl,-O1 -Wl,--as-needed
+LDFLAGS := -Wl,-O1
 
 # The eigen3 and yaml-cpp dependencies are only needed for vicon_calib.cpp
 INCS := -Iinclude `pkg-config --cflags eigen3 yaml-cpp`
@@ -20,16 +20,19 @@ ifeq ($(uname_S), Linux)
 		VICON_SDK_DIR := $(shell pwd)/vicon_sdk/Linux64
 	endif
 	LIB := libvicon_driver.so
+	BOOST_LIBS := -l:$(VICON_SDK_DIR)/libboost_thread-mt.so.1.51.0 \
+		-l:$(VICON_SDK_DIR)/libboost_system-mt.so.1.51.0 \
+		-l:$(VICON_SDK_DIR)/libboost_chrono-mt.so.1.51.0
 else ifeq ($(uname_S), Darwin)
 	VICON_SDK_DIR := $(shell pwd)/vicon_sdk/MacOSX
 	LIB := libvicon_driver.dylib
 else
-	$(error This driver only works on Linux since the included Vicon SDK is only for Linux)
+	$(error This driver only works on Linux and MacOSX since the included Vicon SDK is only for present for those platforms)
 endif
 
 
 INCS += -I$(VICON_SDK_DIR)
-LIBS += -Wl,-rpath,$(VICON_SDK_DIR) -L$(VICON_SDK_DIR) -lViconDataStreamSDK_CPP
+LIBS += -L$(VICON_SDK_DIR) -lViconDataStreamSDK_CPP $(BOOST_LIBS) -Wl,-rpath,$(VICON_SDK_DIR)
 
 all: $(LIB)
 
