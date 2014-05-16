@@ -4,7 +4,7 @@ OBJ := $(SRC:.cpp=.o)
 
 CFLAGS := -Wall -Wextra -O2 -fPIC
 CXXFLAGS := $(CFLAGS)
-LDFLAGS := -Wl,-O1
+LDFLAGS := -Wl,-O1 -Wl,--no-as-needed
 
 # The eigen3 and yaml-cpp dependencies are only needed for vicon_calib.cpp
 INCS := -Iinclude `pkg-config --cflags eigen3 yaml-cpp`
