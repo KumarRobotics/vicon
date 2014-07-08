@@ -44,26 +44,16 @@ if(${YAMLCPP_FOUND})
   endif(NOT(${YAMLCPP_VERSION} VERSION_LESS 0.5))
 endif(${YAMLCPP_FOUND})
 
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-SET(CMAKE_INSTALL_RPATH "${SDK_DIR}")
-
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
 # Force "no-as-needed", required for ViconSDK lib
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-as-needed")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-O1 -Wl,--no-as-needed")
+
+set(CMAKE_INSTALL_RPATH ${SDK_DIR})
 
 add_library(vicon_driver SHARED src/vicon_driver.cpp src/vicon_calib.cpp)
 
 include_directories("${PROJECT_SOURCE_DIR}/include" ${SDK_DIR} ${EIGEN3_INCLUDE_DIR})
 find_library(VICON_SDK_LIB ViconDataStreamSDK_CPP ${SDK_DIR} NO_DEFAULT_PATH)
-target_link_libraries(vicon_driver ${VICON_SDK_LIB} ${VICON_BOOST_LIBS} ${YAMLCPP_LIBRARIES})
+find_library(VICON_DEBUG_SERVICES_LIB DebugServices ${SDK_DIR} NO_DEFAULT_PATH)
+target_link_libraries(vicon_driver ${VICON_SDK_LIB} ${VICON_DEBUG_SERVICES_LIB} ${VICON_BOOST_LIBS} ${YAMLCPP_LIBRARIES})
 
-#set_target_properties(vicon_driver PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS vicon_driver LIBRARY DESTINATION lib)
