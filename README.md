@@ -9,6 +9,12 @@ The libvicon\_driver design is intended to provide flexibility in terms of suppo
 
 There is also an implementation of loading/storing calib (zero pose) files in YAML format using libyaml-cpp (see ViconCalib.h). Loading calib files automatically is implemented in both the interface layes (IPC & ROS) but the ROS interface layer also provides a service which you can call to set the zero pose and automatically save it in the calib file.
 
+### License
+
+libvicon\_driver and the IPC interface are licensed under the Apache-2.0 license.
+
+The ROS interface is licensed under the BSD-3-Clause license.
+
 ### Compiling
 
 First, add the ros folder in this repository to your ROS\_PACKAGE\_PATH. Then, run
@@ -17,7 +23,7 @@ First, add the ros folder in this repository to your ROS\_PACKAGE\_PATH. Then, r
 
 ### Example usage
 
-#### Ros
+#### ROS
 Check the launch files in the vicon and vicon\_odom packages. The output from the vicon node has a lot more information but most likely you'll want to use the vicon\_odom package which generates odometry information from the position and orientation provided by Vicon.
 
 ### Calibrating a Model
