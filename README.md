@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/KumarRobotics/vicon.svg?branch=master)](https://travis-ci.org/KumarRobotics/vicon)
+
 # Vicon Driver
 
 The driver consists of 2 parts:
