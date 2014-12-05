@@ -22,13 +22,15 @@
 #include <vector>
 #include <pthread.h>
 
-namespace ViconDataStreamSDK
-{
-namespace CPP
-{
+namespace ViconDataStreamSDK {
+namespace CPP {
+
 class Client;
-}
-}
+
+}  // namespace CPP
+}  // namespace ViconDataStreamSDK
+
+namespace vicon_driver {
 
 class ViconDriver
 {
@@ -89,5 +91,7 @@ class ViconDriver
   bool grab_frames_;
   bool unlabeled_marker_data_enabled_;
 };
+
+} // namespace vicon_driver
 
 #endif  // VICONDRIVER_VICON_DRIVER_H_

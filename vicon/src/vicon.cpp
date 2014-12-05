@@ -3,8 +3,8 @@
 #include <map>
 #include <set>
 #include <boost/thread.hpp>
-#include "vicon_driver/ViconDriver.h"
-#include "vicon_driver/ViconCalib.h"
+#include "vicon_driver/vicon_driver.h"
+#include "vicon_driver/vicon_calib.h"
 #include "vicon/Subject.h"
 #include "vicon/Markers.h"
 #include "vicon/SetPose.h"
@@ -18,13 +18,15 @@ static std::map<std::string, Eigen::Affine3d, std::less<std::string>,
     Eigen::aligned_allocator<std::pair<const std::string,
     Eigen::Affine3d> > > calib_pose;
 
+using namespace vicon_driver;
+
 static void *loadCalibThread(void *arg)
 {
   std::string *subject_name = reinterpret_cast<std::string*>(arg);
   std::string calib_filename = calib_files_dir + "/" + *subject_name + ".yaml";
   Eigen::Affine3d zero_pose;
 
-  if(!ViconCalib::loadZeroPoseFromFile(calib_filename, zero_pose))
+  if(!vicon_driver::loadZeroPoseFromFile(calib_filename, zero_pose))
   {
     ROS_WARN_STREAM("Error loading calib for " << *subject_name << " from file " <<
                     calib_filename << ", setting calib pose to Identity");
@@ -76,7 +78,7 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
   zero_pose = zero_pose * calib_pose[req.subject_name].inverse();
 
   std::string calib_filename = calib_files_dir + "/" + req.subject_name + ".yaml";
-  if(ViconCalib::saveZeroPoseToFile(zero_pose, calib_filename))
+  if(vicon_driver::saveZeroPoseToFile(zero_pose, calib_filename))
   {
     pthread_mutex_lock(&calib_set_mutex);
     calib_set.erase(req.subject_name);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "vicon_driver/ViconCalib.h"
+#include "vicon_driver/vicon_calib.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
@@ -42,7 +42,7 @@ void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
 #endif
 }
 
-namespace ViconCalib
+namespace vicon_driver
 {
   bool loadZeroPoseFromFile(const std::string &filename, Eigen::Affine3d &zero_pose)
   {

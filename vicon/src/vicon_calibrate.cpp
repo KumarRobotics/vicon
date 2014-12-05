@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/Empty.h>
-#include "vicon_driver/ViconCalib.h"
+#include "vicon_driver/vicon_calib.h"
 #include "vicon/Subject.h"
 #include "vicon/SetPose.h"
 
@@ -44,7 +44,7 @@ static void calib_stand_callback(const vicon::Subject::ConstPtr &msg)
                         msg->markers[i].name.c_str());
     }
   }
-  if(!ViconCalib::getTransform(calib_ref_points, calib_actual_points, calib_transform))
+  if(!vicon_driver::getTransform(calib_ref_points, calib_actual_points, calib_transform))
   {
     ROS_WARN("ViconCalib::getTransform failed");
     calib_stand_ready = false;
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
   nh.param("calib_marker_pos_file", calib_marker_pos_file,
            std::string("QuadrotorCalib.yaml"));
 
-  if(!ViconCalib::loadCalibMarkerPos(calib_marker_pos_file, marker_pos_map))
+  if(!vicon_driver::loadCalibMarkerPos(calib_marker_pos_file, marker_pos_map))
   {
     ROS_FATAL("Error loading calib marker positions from file: %s",
               calib_marker_pos_file.c_str());

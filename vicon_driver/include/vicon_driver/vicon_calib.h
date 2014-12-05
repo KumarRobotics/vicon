@@ -21,7 +21,7 @@
 #include <vector>
 #include <map>
 
-namespace ViconCalib
+namespace vicon_driver
 {
   bool loadZeroPoseFromFile(const std::string &filename, Eigen::Affine3d &zero_pose);
 

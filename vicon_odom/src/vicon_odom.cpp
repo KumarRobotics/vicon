@@ -1,11 +1,14 @@
+#include "vicon_odom/filter.h"
+
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <vicon/Subject.h>
-#include "vicon_odom/filter.h"
 #include <Eigen/Geometry>
 
+using namespace vicon_odom;
+
 static ros::Publisher odom_pub;
-static KalmanFilter kf;
+static vicon_odom::KalmanFilter kf;
 static nav_msgs::Odometry odom_msg;
 
 static void vicon_callback(const vicon::Subject::ConstPtr &msg)

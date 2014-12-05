@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "vicon_driver/ViconDriver.h"
+#include "vicon_driver/vicon_driver.h"
 #include <iostream>
 #include <time.h>
 #include <unistd.h>
@@ -22,6 +22,7 @@
 
 namespace ViconSDK = ViconDataStreamSDK::CPP;
 
+namespace vicon_driver {
 ViconDriver::ViconDriver() :
     connected_(false),
     running_(false),
@@ -342,3 +343,5 @@ void ViconDriver::processUnlabeledMarkers(int64_t frame_time_usec, unsigned int 
   if(unlabeled_markers_callback_ != NULL)
     unlabeled_markers_callback_(unlabeled_markers);
 }
+
+}  // namespace vicon_driver

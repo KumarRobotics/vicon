@@ -72,8 +72,8 @@ target_link_libraries(vicon_driver
 # ====================
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES
-    include/${PROJECT_NAME}/ViconCalib.h
-    include/${PROJECT_NAME}/ViconDriver.h
+    include/${PROJECT_NAME}/vicon_calib.h
+    include/${PROJECT_NAME}/vicon_driver.h
     DESTINATION
     ${CMAKE_INCLUDE_PREFIX}/${PROJECT_NAME}
     )
