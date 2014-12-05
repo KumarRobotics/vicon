@@ -51,7 +51,6 @@ target_link_libraries(${PROJECT_NAME}
 
 catkin_package(
     INCLUDE_DIRS include 
-    LIBRARIES ${PROEJCT_NAME}
     CATKIN_DEPENDS roscpp geometry_msgs nav_msgs std_srvs message_runtime
     DEPENDS Eigen Boost
     )
