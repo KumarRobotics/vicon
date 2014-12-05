@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef LIBVICONDRIVER_VICON_DRIVER_H
-#define LIBVICONDRIVER_VICON_DRIVER_H
+#ifndef VICONDRIVER_VICON_DRIVER_H_
+#define VICONDRIVER_VICON_DRIVER_H_
 
 #include <stdint.h>
 #include <string>
@@ -90,4 +90,4 @@ class ViconDriver
   bool unlabeled_marker_data_enabled_;
 };
 
-#endif
+#endif  // VICONDRIVER_VICON_DRIVER_H_

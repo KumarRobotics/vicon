@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "ViconCalib.h"
+#include "vicon_driver/ViconCalib.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 

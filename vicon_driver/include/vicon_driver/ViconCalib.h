@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef LIBVICONDRIVER_VICON_CALIB_H
-#define LIBVICONDRIVER_VICON_CALIB_H
+#ifndef VICONDRIVER_VICON_CALIB_H_
+#define VICONDRIVER_VICON_CALIB_H_
 
 #include <Eigen/Geometry>
 #include <vector>
@@ -35,4 +35,4 @@ namespace ViconCalib
                           std::map<std::string, Eigen::Vector3d> &marker_pos_map);
 }
 
-#endif
+#endif // VICONDRIVER_VICON_CALIB_H_

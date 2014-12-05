@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "ViconDriver.h"
+#include "vicon_driver/ViconDriver.h"
 #include <iostream>
 #include <time.h>
 #include <unistd.h>
