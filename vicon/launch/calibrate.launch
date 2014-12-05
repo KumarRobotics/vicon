@@ -1,0 +1,21 @@
+<launch>
+
+  <arg name="model" default="QuadrotorNovember" />
+
+  <node pkg="vicon"
+    type="vicon"
+    name="vicon"
+    output="screen">
+    <param name="vicon_server" value="alkaline"/>
+    <param name="calib_files_dir" value="$(find vicon)/calib"/>
+  </node>
+  <node pkg="vicon"
+    type="vicon_calibrate"
+    name="vicon_calibrate"
+    output="screen">
+    <param name="calib_marker_pos_file" value="$(find vicon)/conf/QuadrotorCalib.yaml"/>
+    <remap from="~vicon_calib" to="/vicon/QuadrotorCalib"/>
+    <remap from="~vicon_subject" to="/vicon/$(arg model)"/>
+    <remap from="~set_zero_pose" to="/vicon/set_zero_pose"/>
+  </node>
+</launch>
