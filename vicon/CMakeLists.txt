@@ -17,7 +17,7 @@ file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include/${VICON_DRIVER})
 ExternalProject_Add(${VICON_DRIVER}
     UPDATE_COMMAND ""
-    URL /home/chao/Workspace/repo/kumar_robotics/vicon/vicon_driver
+    URL ${PROJECT_SOURCE_DIR}/../vicon_driver
     CMAKE_ARGS -DBUILD_SHARED_LIBS=ON
     # -DCMAKE_CXX_FLAGS=-std=c++11
     -DCMAKE_BUILD_TYPE:STRING=Release
