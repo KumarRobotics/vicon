@@ -6,7 +6,7 @@
 
     <node pkg="vicon_odom" type="vicon_odom_node" name="$(arg model)"
         ns="vicon" output="$(arg output)">
-        <param name="child_frame_id" type="string" value="$(arg child_frame_id"/>
+        <param name="child_frame_id" type="string" value="$(arg child_frame_id)"/>
         <param name="publish_tf" type="bool" value="$(arg publish_tf)"/>
         <param name="model" type="string" value="$(arg model)"/>
     </node>
