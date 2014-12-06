@@ -3,8 +3,8 @@ project(vicon_driver CXX)
 
 find_package(Boost 1.40 REQUIRED)
 
-set(CMAKE_INSTALL_PREFIX /home/chao/${PROJECT_NAME}/lib CACHE PATH "install")
-set(CMAKE_INCLUDE_PREFIX /home/chao/${PROJECT_NAME}/include CACHE PATH "include")
+set(CMAKE_INSTALL_PREFIX /usr/local/lib CACHE PATH "install")
+set(CMAKE_INCLUDE_PREFIX /usr/local/include CACHE PATH "include")
 
 if(WIN32)
   message(FATAL_ERROR "Windows is not yet supported")
