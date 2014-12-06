@@ -13,8 +13,10 @@ ViconOdomNode::ViconOdomNode(const ros::NodeHandle &nh,
   pnh_.param("publish_tf", publish_tf_, false);
   std::string model;
   pnh_.param<std::string>("model", model, "");
+  pnh_.param<std::string>("child_frame_id", child_frame_id_, model);
   if (model.empty()) throw std::runtime_error("vicon_odom: empty model name");
-  // There should only be one vicon_fps, so we read from nh instead of pnh
+
+  // There should only be one vicon_fps, so we read from nh
   double dt, vicon_fps;
   nh_.param("vicon_fps", vicon_fps, 100.0);
   ROS_ASSERT(vicon_fps > 0.0);
@@ -39,10 +41,13 @@ ViconOdomNode::ViconOdomNode(const ros::NodeHandle &nh,
                  proc_noise_diag.asDiagonal(), meas_noise_diag.asDiagonal());
 
   // Initialize publisher and subscriber
+  // Subscribe to /vicon/<model>
   vicon_sub_ = nh_.subscribe(model, 10, &ViconOdomNode::ViconCallback, this,
                              ros::TransportHints().tcpNoDelay());
-  // Publish odometry under /vicon/model/odom
+  // Publish odometry under /vicon/<model>/odom
   odom_pub_ = pnh_.advertise<nav_msgs::Odometry>("odom", 10);
+  ROS_INFO("Starting vicon_odom node for model: %s, child_frame_id: %s",
+           model.c_str(), child_frame_id_.c_str());
 }
 
 void ViconOdomNode::ViconCallback(const vicon::Subject::ConstPtr &vicon_msg) {
@@ -66,7 +71,7 @@ void ViconOdomNode::ViconCallback(const vicon::Subject::ConstPtr &vicon_msg) {
 
   nav_msgs::Odometry odom_msg;
   odom_msg.header = vicon_msg->header;
-  odom_msg.child_frame_id = vicon_msg->name;
+  odom_msg.child_frame_id = child_frame_id_;
   odom_msg.pose.pose.position.x = state(0);
   odom_msg.pose.pose.position.y = state(1);
   odom_msg.pose.pose.position.z = state(2);
@@ -123,3 +128,18 @@ void ViconOdomNode::PublishTransform(const geometry_msgs::Pose &pose,
 }
 
 }  // namespace vicon_odom
+
+#include "vicon_odom/vicon_odom_node.hpp"
+
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "vicon_odom_node");
+  ros::NodeHandle nh, pnh("~");
+
+  try {
+    vicon_odom::ViconOdomNode vicon_odom_node(nh, pnh);
+    ros::spin();
+  }
+  catch (const std::exception &e) {
+    ROS_ERROR("%s: %s", nh.getNamespace().c_str(), e.what());
+  }
+}

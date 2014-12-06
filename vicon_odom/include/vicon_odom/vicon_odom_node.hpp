@@ -26,6 +26,7 @@ class ViconOdomNode {
   ros::Publisher odom_pub_;
   ros::Subscriber vicon_sub_;
   vicon_odom::KalmanFilter kf_;
+  std::string child_frame_id_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
 };
 
