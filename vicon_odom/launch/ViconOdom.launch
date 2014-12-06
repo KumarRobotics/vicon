@@ -1,11 +1,8 @@
 <launch>
 
-  <arg name="model" />
+  <arg name="model"/>
 
-  <node pkg="vicon_odom"
-    type="vicon_odom"
-    name="$(arg model)"
-    output="screen">
+  <node pkg="vicon_odom" type="vicon_odom" name="$(arg model)" output="screen">
     <remap from="~vicon" to="/vicon/$(arg model)"/>
     <remap from="~odom" to="/$(arg model)/odom"/>
   </node>

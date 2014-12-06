@@ -1,0 +1,11 @@
+<launch>
+    <arg name="model"/>
+    <arg name="publish_tf" default="false"/>
+    <arg name="output" default="screen"/>
+
+    <node name="vicon_odom" type="vicon_odom_node" name="$(arg model)"
+        ns="vicon" output="$(arg output)">
+        <param name="publish_tf" type="string" default="$(arg publish_tf)"/>
+        <param name="model" type="string" default="$(arg model)"/>  
+    </node> 
+</launch>
