@@ -129,8 +129,6 @@ void ViconOdomNode::PublishTransform(const geometry_msgs::Pose &pose,
 
 }  // namespace vicon_odom
 
-#include "vicon_odom/vicon_odom_node.hpp"
-
 int main(int argc, char **argv) {
   ros::init(argc, argv, "vicon_odom_node");
   ros::NodeHandle nh, pnh("~");
