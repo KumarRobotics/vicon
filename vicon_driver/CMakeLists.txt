@@ -3,9 +3,6 @@ project(vicon_driver CXX)
 
 find_package(Boost 1.40 REQUIRED)
 
-set(CMAKE_INSTALL_PREFIX /usr/local/lib CACHE PATH "install")
-set(CMAKE_INCLUDE_PREFIX /usr/local/include CACHE PATH "include")
-
 if(WIN32)
   message(FATAL_ERROR "Windows is not yet supported")
 endif()
@@ -63,17 +60,17 @@ add_library(${PROJECT_NAME} SHARED src/vicon_driver.cpp src/vicon_calib.cpp)
 include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIR})
 find_library(VICON_SDK_LIB ViconDataStreamSDK_CPP ${SDK_DIR} NO_DEFAULT_PATH)
 find_library(VICON_DEBUG_SERVICES_LIB DebugServices ${SDK_DIR} NO_DEFAULT_PATH)
-target_link_libraries(vicon_driver
-  ${VICON_SDK_LIB} ${VICON_DEBUG_SERVICES_LIB}
-  ${VICON_BOOST_LIBS} ${YAMLCPP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}
+    ${VICON_SDK_LIB} ${VICON_DEBUG_SERVICES_LIB}
+    ${VICON_BOOST_LIBS} ${YAMLCPP_LIBRARIES})
 
 # ====================
 # Library installation
 # ====================
-install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 install(FILES
     include/${PROJECT_NAME}/vicon_calib.h
     include/${PROJECT_NAME}/vicon_driver.h
     DESTINATION
-    ${CMAKE_INCLUDE_PREFIX}/${PROJECT_NAME}
+    include/${PROJECT_NAME}
     )
