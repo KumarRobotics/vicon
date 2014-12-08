@@ -13,8 +13,8 @@ ViconOdomNode::ViconOdomNode(const ros::NodeHandle &nh,
   pnh_.param("publish_tf", publish_tf_, false);
   std::string model;
   pnh_.param<std::string>("model", model, "");
-  pnh_.param<std::string>("child_frame_id", child_frame_id_, model);
   if (model.empty()) throw std::runtime_error("vicon_odom: empty model name");
+  pnh_.param<std::string>("child_frame_id", child_frame_id_, model);
 
   // There should only be one vicon_fps, so we read from nh
   double dt, vicon_fps;

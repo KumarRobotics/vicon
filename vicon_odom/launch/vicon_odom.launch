@@ -1,6 +1,6 @@
 <launch>
     <arg name="model"/>
-    <arg name="child_frame_id" default="$(arg model)"/>
+    <arg name="child_frame_id" default="base_link"/>
     <arg name="publish_tf" default="false"/>
     <arg name="output" default="screen"/>
 
