@@ -23,16 +23,21 @@
 
 namespace vicon_driver
 {
-  bool loadZeroPoseFromFile(const std::string &filename, Eigen::Affine3d &zero_pose);
+namespace calib
+{
+bool loadZeroPoseFromFile(const std::string &filename,
+                          Eigen::Affine3d &zero_pose);
 
-  bool saveZeroPoseToFile(const Eigen::Affine3d &zero_pose, const std::string &filename);
+bool saveZeroPoseToFile(const Eigen::Affine3d &zero_pose,
+                        const std::string &filename);
 
-  bool getTransform(const std::vector<Eigen::Vector3d> &reference_points,
-                    const std::vector<Eigen::Vector3d> &actual_points,
-                    Eigen::Affine3d &transform);
+bool getTransform(const std::vector<Eigen::Vector3d> &reference_points,
+                  const std::vector<Eigen::Vector3d> &actual_points,
+                  Eigen::Affine3d &transform);
 
-  bool loadCalibMarkerPos(const std::string &filename,
-                          std::map<std::string, Eigen::Vector3d> &marker_pos_map);
+bool loadCalibMarkerPos(const std::string &filename,
+                        std::map<std::string, Eigen::Vector3d> &marker_pos_map);
+}
 }
 
 #endif // VICONDRIVER_VICON_CALIB_H_

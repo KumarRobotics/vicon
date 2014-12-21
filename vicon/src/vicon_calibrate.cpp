@@ -43,7 +43,7 @@ static void calib_stand_callback(const vicon::Subject::ConstPtr &msg)
       ROS_WARN_THROTTLE(1, "Marker %s is occluded, skipping it", msg->markers[i].name.c_str());
     }
   }
-  if(!vicon_driver::getTransform(calib_ref_points, calib_actual_points, calib_transform))
+  if(!vicon_driver::calib::getTransform(calib_ref_points, calib_actual_points, calib_transform))
   {
     ROS_WARN("ViconCalib::getTransform failed");
     calib_stand_ready = false;
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
   std::string calib_marker_pos_file;
   nh.param("calib_marker_pos_file", calib_marker_pos_file, std::string("QuadrotorCalib.yaml"));
 
-  if(!vicon_driver::loadCalibMarkerPos(calib_marker_pos_file, marker_pos_map))
+  if(!vicon_driver::calib::loadCalibMarkerPos(calib_marker_pos_file, marker_pos_map))
   {
     ROS_FATAL("Error loading calib marker positions from file: %s", calib_marker_pos_file.c_str());
     return -1;

@@ -26,7 +26,7 @@ static void *loadCalibThread(void *arg)
   std::string calib_filename = calib_files_dir + "/" + *subject_name + ".yaml";
   Eigen::Affine3d zero_pose;
 
-  if(!vicon_driver::loadZeroPoseFromFile(calib_filename, zero_pose))
+  if(!vicon_driver::calib::loadZeroPoseFromFile(calib_filename, zero_pose))
   {
     ROS_WARN_STREAM("Error loading calib for " << *subject_name << " from file " << calib_filename <<
                     ", setting calib pose to Identity");
@@ -75,7 +75,7 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
   zero_pose = zero_pose * calib_pose[req.subject_name].inverse();
 
   std::string calib_filename = calib_files_dir + "/" + req.subject_name + ".yaml";
-  if(vicon_driver::saveZeroPoseToFile(zero_pose, calib_filename))
+  if(vicon_driver::calib::saveZeroPoseToFile(zero_pose, calib_filename))
   {
     pthread_mutex_lock(&calib_set_mutex);
     calib_set.erase(req.subject_name);

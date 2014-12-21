@@ -44,6 +44,8 @@ static void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
 
 namespace vicon_driver
 {
+namespace calib
+{
   bool loadZeroPoseFromFile(const std::string &filename, Eigen::Affine3d &zero_pose)
   {
     zero_pose = Eigen::Affine3d::Identity();
@@ -259,5 +261,6 @@ namespace vicon_driver
     }
     return ret;
   }
+}
 }
 
