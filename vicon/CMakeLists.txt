@@ -35,7 +35,6 @@ add_service_files(FILES SetPose.srv)
 generate_messages(DEPENDENCIES nav_msgs geometry_msgs std_msgs)
 
 include_directories(
-    include
     ${CATKIN_DEVEL_PREFIX}/include
     ${catkin_INCLUDE_DIRS}
     ${Eigen_INCLUDE_DIR}
@@ -50,7 +49,6 @@ target_link_libraries(${PROJECT_NAME}
     )
 
 catkin_package(
-    INCLUDE_DIRS include 
     CATKIN_DEPENDS roscpp geometry_msgs nav_msgs std_srvs message_runtime
     DEPENDS Eigen Boost
     )
