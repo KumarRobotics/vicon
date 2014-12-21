@@ -10,6 +10,9 @@ LDFLAGS := -Wl,-O1 -Wl,--no-as-needed
 INCS := -Iinclude `pkg-config --cflags eigen3 yaml-cpp`
 LIBS := -lpthread -lrt `pkg-config --libs eigen3 yaml-cpp`
 
+# Comment the following line if you have yaml-cpp version < 0.5
+INCS += -DHAVE_NEW_YAMLCPP
+
 uname_S := $(shell sh -c 'uname -s 2>/dev/null')
 uname_M := $(shell sh -c 'uname -m 2>/dev/null')
 
@@ -29,7 +32,6 @@ else ifeq ($(uname_S), Darwin)
 else
 	$(error This driver only works on Linux and MacOSX since the included Vicon SDK is only present for those platforms)
 endif
-
 
 INCS += -I$(VICON_SDK_DIR)
 LIBS += -L$(VICON_SDK_DIR) -lViconDataStreamSDK_CPP $(BOOST_LIBS) -Wl,-rpath,$(VICON_SDK_DIR)

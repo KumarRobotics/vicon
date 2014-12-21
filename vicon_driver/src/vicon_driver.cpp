@@ -22,7 +22,9 @@
 
 namespace ViconSDK = ViconDataStreamSDK::CPP;
 
-namespace vicon_driver {
+namespace vicon_driver
+{
+
 ViconDriver::ViconDriver() :
     connected_(false),
     running_(false),

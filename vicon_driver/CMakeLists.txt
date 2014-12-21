@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vicon_driver CXX)
 
-find_package(Boost 1.40 REQUIRED)
+find_package(catkin REQUIRED)
+find_package(Boost 1.46 REQUIRED) # Only for enforcing minimum Boost version required for vicon sdk lib
 
 if(WIN32)
   message(FATAL_ERROR "Windows is not yet supported")
@@ -39,7 +40,10 @@ else(NOT APPLE)
   set(SDK_DIR "${PROJECT_SOURCE_DIR}/vicon_sdk/MacOSX")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+find_library(VICON_SDK_LIB ViconDataStreamSDK_CPP ${SDK_DIR} NO_DEFAULT_PATH)
+find_library(VICON_DEBUG_SERVICES_LIB DebugServices ${SDK_DIR} NO_DEFAULT_PATH)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(Eigen REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -51,26 +55,30 @@ if(${YAMLCPP_FOUND})
   endif()
 endif()
 
+catkin_package(CATKIN_DEPENDS
+  DEPENDS Eigen YAMLCPP
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME})
+
 # Force "no-as-needed", required for ViconSDK lib
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-O1 -Wl,--no-as-needed")
-set(CMAKE_INSTALL_RPATH ${SDK_DIR})
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}")
+
+include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED src/vicon_driver.cpp src/vicon_calib.cpp)
-
-include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIR})
-find_library(VICON_SDK_LIB ViconDataStreamSDK_CPP ${SDK_DIR} NO_DEFAULT_PATH)
-find_library(VICON_DEBUG_SERVICES_LIB DebugServices ${SDK_DIR} NO_DEFAULT_PATH)
 target_link_libraries(${PROJECT_NAME}
-    ${VICON_SDK_LIB} ${VICON_DEBUG_SERVICES_LIB}
-    ${VICON_BOOST_LIBS} ${YAMLCPP_LIBRARIES})
+  ${VICON_SDK_LIB} ${VICON_DEBUG_SERVICES_LIB}
+  ${VICON_BOOST_LIBS} ${YAMLCPP_LIBRARIES})
 
-# ====================
-# Library installation
-# ====================
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-install(FILES
-    include/${PROJECT_NAME}/vicon_calib.h
-    include/${PROJECT_NAME}/vicon_driver.h
-    DESTINATION
-    include/${PROJECT_NAME}
-    )
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+
+install(DIRECTORY ${SDK_DIR}/
+  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}
+  PATTERN "*.h" EXCLUDE)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})

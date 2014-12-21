@@ -9,16 +9,16 @@
 #include "vicon/Markers.h"
 #include "vicon/SetPose.h"
 
+using vicon_driver::ViconDriver;
+
 static ros::NodeHandle *nh = NULL;
 static std::string calib_files_dir;
 static bool running = false;
 static pthread_mutex_t calib_set_mutex = PTHREAD_MUTEX_INITIALIZER;
-static std::map<std::string, bool> calib_set;
-static std::map<std::string, Eigen::Affine3d, std::less<std::string>,
-    Eigen::aligned_allocator<std::pair<const std::string,
-    Eigen::Affine3d> > > calib_pose;
+static std::map<const std::string, bool> calib_set;
+static std::map<const std::string, Eigen::Affine3d, std::less<const std::string>,
+    Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > calib_pose;
 
-using namespace vicon_driver;
 
 static void *loadCalibThread(void *arg)
 {
@@ -28,8 +28,8 @@ static void *loadCalibThread(void *arg)
 
   if(!vicon_driver::loadZeroPoseFromFile(calib_filename, zero_pose))
   {
-    ROS_WARN_STREAM("Error loading calib for " << *subject_name << " from file " <<
-                    calib_filename << ", setting calib pose to Identity");
+    ROS_WARN_STREAM("Error loading calib for " << *subject_name << " from file " << calib_filename <<
+                    ", setting calib pose to Identity");
   }
 
   calib_pose[*subject_name] = zero_pose.inverse();
@@ -67,10 +67,7 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
 {
   Eigen::Affine3d zero_pose;
   Eigen::Vector3d t(req.pose.position.x, req.pose.position.y, req.pose.position.z);
-  Eigen::Quaterniond q(req.pose.orientation.w,
-                       req.pose.orientation.x,
-                       req.pose.orientation.y,
-                       req.pose.orientation.z);
+  Eigen::Quaterniond q(req.pose.orientation.w, req.pose.orientation.x, req.pose.orientation.y, req.pose.orientation.z);
   zero_pose.setIdentity();
   zero_pose.translate(t);
   zero_pose.rotate(q);
@@ -86,13 +83,11 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
   }
   else
   {
-    ROS_ERROR_STREAM("Error saving zero pose for " << req.subject_name <<
-                     ", keeping old calib pose");
+    ROS_ERROR_STREAM("Error saving zero pose for " << req.subject_name << ", keeping old calib pose");
   }
 }
 
-static bool saveCalib(vicon::SetPose::Request &req,
-                      vicon::SetPose::Response &res)
+static bool saveCalib(vicon::SetPose::Request &req, vicon::SetPose::Response &res)
 {
   boost::thread save_calib_thread(saveCalibThread, req);
   save_calib_thread.detach();
@@ -188,14 +183,12 @@ int main(int argc, char **argv)
 
   std::string vicon_server;
   nh->param("vicon_server", vicon_server, std::string("alkaline"));
-
   nh->param("calib_files_dir", calib_files_dir, std::string("calib"));
 
   bool enable_unlabeled_markers;
   nh->param("enable_unlabeled_markers", enable_unlabeled_markers, false);
 
-  ros::ServiceServer set_zero_pose_srv =
-      nh->advertiseService("set_zero_pose", &saveCalib);
+  ros::ServiceServer set_zero_pose_srv = nh->advertiseService("set_zero_pose", &saveCalib);
 
   ViconDriver vd;
   if(!vd.init(vicon_server))

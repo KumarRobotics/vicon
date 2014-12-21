@@ -5,6 +5,7 @@
 #include "vicon/Subject.h"
 #include "vicon/SetPose.h"
 
+
 static ros::Publisher zero_pose_pub;
 static std::map<std::string, Eigen::Vector3d> marker_pos_map;
 static std::vector<Eigen::Vector3d> calib_ref_points, calib_actual_points;
@@ -12,6 +13,7 @@ static Eigen::Affine3d calib_transform;
 static bool enable_calibration = false;
 static bool calib_stand_ready = false;
 static ros::ServiceClient set_zero_pose_srv;
+
 
 static void calib_stand_callback(const vicon::Subject::ConstPtr &msg)
 {
@@ -27,21 +29,18 @@ static void calib_stand_callback(const vicon::Subject::ConstPtr &msg)
       if(it != marker_pos_map.end())
       {
         calib_ref_points.push_back(it->second);
-        calib_actual_points.push_back(Eigen::Vector3d(msg->markers[i].position.x,
-                                                      msg->markers[i].position.y,
+        calib_actual_points.push_back(Eigen::Vector3d(msg->markers[i].position.x, msg->markers[i].position.y,
                                                       msg->markers[i].position.z));
       }
       else
       {
-        ROS_WARN_THROTTLE(1, "Marker %s is not present in calib_marker_pos_file"
-                          ", skipping it",
+        ROS_WARN_THROTTLE(1, "Marker %s is not present in calib_marker_pos_file, skipping it",
                           msg->markers[i].name.c_str());
       }
     }
     else
     {
-      ROS_WARN_THROTTLE(1, "Marker %s is occluded, skipping it",
-                        msg->markers[i].name.c_str());
+      ROS_WARN_THROTTLE(1, "Marker %s is occluded, skipping it", msg->markers[i].name.c_str());
     }
   }
   if(!vicon_driver::getTransform(calib_ref_points, calib_actual_points, calib_transform))
@@ -93,13 +92,8 @@ static void subject_callback(const vicon::Subject::ConstPtr &msg)
   if(calibrating)
   {
     Eigen::Affine3d zero_pose, current_pose;
-    Eigen::Vector3d t(msg->position.x,
-                      msg->position.y,
-                      msg->position.z);
-    Eigen::Quaterniond q(msg->orientation.w,
-                         msg->orientation.x,
-                         msg->orientation.y,
-                         msg->orientation.z);
+    Eigen::Vector3d t(msg->position.x, msg->position.y, msg->position.z);
+    Eigen::Quaterniond q(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
     current_pose.setIdentity();
     current_pose.translate(t);
     current_pose.rotate(q);
@@ -139,8 +133,7 @@ static void subject_callback(const vicon::Subject::ConstPtr &msg)
   }
 }
 
-static bool toggle_calib_callback(std_srvs::Empty::Request &req,
-                                  std_srvs::Empty::Response &res)
+static bool toggle_calib_callback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
   if(!calib_stand_ready)
   {
@@ -160,30 +153,27 @@ int main(int argc, char **argv)
   ros::NodeHandle nh("~");
 
   std::string calib_marker_pos_file;
-  nh.param("calib_marker_pos_file", calib_marker_pos_file,
-           std::string("QuadrotorCalib.yaml"));
+  nh.param("calib_marker_pos_file", calib_marker_pos_file, std::string("QuadrotorCalib.yaml"));
 
   if(!vicon_driver::loadCalibMarkerPos(calib_marker_pos_file, marker_pos_map))
   {
-    ROS_FATAL("Error loading calib marker positions from file: %s",
-              calib_marker_pos_file.c_str());
+    ROS_FATAL("Error loading calib marker positions from file: %s", calib_marker_pos_file.c_str());
     return -1;
   }
 
   calib_ref_points.resize(marker_pos_map.size());
   calib_actual_points.resize(marker_pos_map.size());
 
+  zero_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("zero_pose", 10);
+
+  set_zero_pose_srv = nh.serviceClient<vicon::SetPose>("set_zero_pose");
+
   ros::Subscriber calib_sub = nh.subscribe("vicon_calib", 10, &calib_stand_callback,
                                            ros::TransportHints().tcp().tcpNoDelay());
   ros::Subscriber subject_sub = nh.subscribe("vicon_subject", 10, &subject_callback,
                                              ros::TransportHints().tcp().tcpNoDelay());
 
-  zero_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("zero_pose", 10);
-
-  set_zero_pose_srv = nh.serviceClient<vicon::SetPose>("set_zero_pose");
-
-  ros::ServiceServer toggle_calib_srv =
-      nh.advertiseService("toggle_calibration", &toggle_calib_callback);
+  ros::ServiceServer toggle_calib_srv = nh.advertiseService("toggle_calibration", &toggle_calib_callback);
 
   ros::spin();
 
