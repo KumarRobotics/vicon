@@ -1,41 +1,77 @@
-#include "vicon_odom/filter.h"
+#include "vicon_odom/vicon_odom.hpp"
 
-#include <ros/ros.h>
-#include <nav_msgs/Odometry.h>
-#include <vicon/Subject.h>
 #include <Eigen/Geometry>
+#include <nav_msgs/Odometry.h>
 
-using namespace vicon_odom;
+namespace vicon_odom
+{
+ViconOdom::ViconOdom(ros::NodeHandle &nh)
+{
+  double max_accel;
+  nh.param("max_accel", max_accel, 5.0);
+  nh.param("publish_tf", publish_tf_, false);
+  std::string model;
+  nh.param<std::string>("model", model, "");
+  if(model.empty())
+    throw std::runtime_error("vicon_odom: empty model name");
+  nh.param<std::string>("child_frame_id", child_frame_id_, model);
 
-static ros::Publisher odom_pub;
-static vicon_odom::KalmanFilter kf;
-static nav_msgs::Odometry odom_msg;
+  // There should only be one vicon_fps, so we read from nh
+  double dt, vicon_fps;
+  nh.param("vicon_fps", vicon_fps, 100.0);
+  ROS_ASSERT(vicon_fps > 0.0);
+  dt = 1 / vicon_fps;
 
-static void vicon_callback(const vicon::Subject::ConstPtr &msg)
+  // Initialize KalmanFilter
+  KalmanFilter::State_t proc_noise_diag;
+  proc_noise_diag(0) = 0.5 * max_accel * dt * dt;
+  proc_noise_diag(1) = 0.5 * max_accel * dt * dt;
+  proc_noise_diag(2) = 0.5 * max_accel * dt * dt;
+  proc_noise_diag(3) = max_accel * dt;
+  proc_noise_diag(4) = max_accel * dt;
+  proc_noise_diag(5) = max_accel * dt;
+  proc_noise_diag = proc_noise_diag.array().square();
+  KalmanFilter::Measurement_t meas_noise_diag;
+  meas_noise_diag(0) = 1e-4;
+  meas_noise_diag(1) = 1e-4;
+  meas_noise_diag(2) = 1e-4;
+  meas_noise_diag = meas_noise_diag.array().square();
+  kf_.initialize(KalmanFilter::State_t::Zero(),
+                 0.01 * KalmanFilter::ProcessCov_t::Identity(),
+                 proc_noise_diag.asDiagonal(), meas_noise_diag.asDiagonal());
+
+  // Initialize publisher and subscriber
+  odom_pub_ = nh.advertise<nav_msgs::Odometry>("odom", 10);
+  vicon_sub_ = nh.subscribe(model, 10, &ViconOdom::ViconCallback, this,
+                            ros::TransportHints().tcpNoDelay());
+  ROS_INFO("Starting vicon_odom node for model: %s, child_frame_id: %s",
+           model.c_str(), child_frame_id_.c_str());
+}
+
+void ViconOdom::ViconCallback(const vicon::Subject::ConstPtr &msg)
 {
   static ros::Time t_last_proc = msg->header.stamp;
-
   double dt = (msg->header.stamp - t_last_proc).toSec();
   t_last_proc = msg->header.stamp;
 
   // Kalman filter for getting translational velocity from position measurements
-  kf.processUpdate(dt);
-  const KalmanFilter::Measurement_t meas(msg->position.x, msg->position.y, msg->position.z);
+  kf_.processUpdate(dt);
+  const KalmanFilter::Measurement_t meas(msg->position.x, msg->position.y,
+                                         msg->position.z);
   if(!msg->occluded)
   {
     static ros::Time t_last_meas = msg->header.stamp;
     double meas_dt = (msg->header.stamp - t_last_meas).toSec();
     t_last_meas = msg->header.stamp;
-    kf.measurementUpdate(meas, meas_dt);
+    kf_.measurementUpdate(meas, meas_dt);
   }
 
-  const KalmanFilter::State_t state = kf.getState();
-  const KalmanFilter::ProcessCov_t proc_noise = kf.getProcessNoise();
+  const KalmanFilter::State_t state = kf_.getState();
+  const KalmanFilter::ProcessCov_t proc_noise = kf_.getProcessNoise();
 
-  odom_msg.header.seq = msg->header.seq;
-  odom_msg.header.stamp = msg->header.stamp;
-  odom_msg.header.frame_id = msg->header.frame_id;
-  odom_msg.child_frame_id = msg->name;
+  nav_msgs::Odometry odom_msg;
+  odom_msg.header = msg->header;
+  odom_msg.child_frame_id = child_frame_id_;
   odom_msg.pose.pose.position.x = state(0);
   odom_msg.pose.pose.position.y = state(1);
   odom_msg.pose.pose.position.z = state(2);
@@ -46,23 +82,21 @@ static void vicon_callback(const vicon::Subject::ConstPtr &msg)
   {
     for(int j = 0; j < 3; j++)
     {
-      odom_msg.pose.covariance[6*i+j] = proc_noise(i,j);
-      odom_msg.twist.covariance[6*i+j] = proc_noise(3+i, 3+j);
+      odom_msg.pose.covariance[6 * i + j] = proc_noise(i, j);
+      odom_msg.twist.covariance[6 * i + j] = proc_noise(3 + i, 3 + j);
     }
   }
 
-  odom_msg.pose.pose.orientation.x = msg->orientation.x;
-  odom_msg.pose.pose.orientation.y = msg->orientation.y;
-  odom_msg.pose.pose.orientation.z = msg->orientation.z;
-  odom_msg.pose.pose.orientation.w = msg->orientation.w;
+  odom_msg.pose.pose.orientation = msg->orientation;
 
   // Single step differentitation for angular velocity
   static Eigen::Matrix3d R_prev(Eigen::Matrix3d::Identity());
-  Eigen::Matrix3d R(Eigen::Quaterniond(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z));
+  Eigen::Matrix3d R(Eigen::Quaterniond(msg->orientation.w, msg->orientation.x,
+                                       msg->orientation.y, msg->orientation.z));
   if(dt > 1e-6)
   {
-    Eigen::Matrix3d R_dot = (R - R_prev)/dt;
-    Eigen::Matrix3d w_hat = R_dot * R.transpose();
+    const Eigen::Matrix3d R_dot = (R - R_prev) / dt;
+    const Eigen::Matrix3d w_hat = R_dot * R.transpose();
 
     odom_msg.twist.twist.angular.x = w_hat(2, 1);
     odom_msg.twist.twist.angular.y = w_hat(0, 2);
@@ -70,47 +104,47 @@ static void vicon_callback(const vicon::Subject::ConstPtr &msg)
   }
   R_prev = R;
 
-  odom_pub.publish(odom_msg);
+  odom_pub_.publish(odom_msg);
+  if(publish_tf_)
+  {
+    PublishTransform(odom_msg.pose.pose, odom_msg.header,
+                     odom_msg.child_frame_id);
+  }
 }
+
+void ViconOdom::PublishTransform(const geometry_msgs::Pose &pose,
+                                 const std_msgs::Header &header,
+                                 const std::string &child_frame_id)
+{
+  // Publish tf
+  geometry_msgs::Vector3 translation;
+  translation.x = pose.position.x;
+  translation.y = pose.position.y;
+  translation.z = pose.position.z;
+
+  geometry_msgs::TransformStamped transform_stamped;
+  transform_stamped.header = header;
+  transform_stamped.child_frame_id = child_frame_id;
+  transform_stamped.transform.translation = translation;
+  transform_stamped.transform.rotation = pose.orientation;
+
+  tf_broadcaster_.sendTransform(transform_stamped);
+}
+
+} // namespace vicon_odom
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "vicon_odom");
+  ros::NodeHandle nh("~");
 
-  ros::NodeHandle n("~");
-
-  double max_accel;
-  n.param("max_accel", max_accel, 5.0);
-
-  double dt, vicon_fps;
-  n.param("vicon_fps", vicon_fps, 100.0);
-  ROS_ASSERT(vicon_fps > 0.0);
-  dt = 1/vicon_fps;
-
-  KalmanFilter::State_t proc_noise_diag;
-  proc_noise_diag(0) = 0.5*max_accel*dt*dt;
-  proc_noise_diag(1) = 0.5*max_accel*dt*dt;
-  proc_noise_diag(2) = 0.5*max_accel*dt*dt;
-  proc_noise_diag(3) = max_accel*dt;
-  proc_noise_diag(4) = max_accel*dt;
-  proc_noise_diag(5) = max_accel*dt;
-  proc_noise_diag = proc_noise_diag.array().square();
-  KalmanFilter::Measurement_t meas_noise_diag;
-  meas_noise_diag(0) = 1e-4;
-  meas_noise_diag(1) = 1e-4;
-  meas_noise_diag(2) = 1e-4;
-  meas_noise_diag = meas_noise_diag.array().square();
-  kf.initialize(KalmanFilter::State_t::Zero(),
-                0.01*KalmanFilter::ProcessCov_t::Identity(),
-                proc_noise_diag.asDiagonal(),
-                meas_noise_diag.asDiagonal());
-
-  ros::Subscriber vicon_sub = n.subscribe("vicon", 10, &vicon_callback,
-                                          ros::TransportHints().tcpNoDelay());
-
-  odom_pub = n.advertise<nav_msgs::Odometry>("odom", 10);
-
-  ros::spin();
-
-  return 0;
+  try
+  {
+    vicon_odom::ViconOdom vicon_odom(nh);
+    ros::spin();
+  }
+  catch(const std::exception &e)
+  {
+    ROS_ERROR("%s: %s", nh.getNamespace().c_str(), e.what());
+  }
 }
