@@ -22,16 +22,16 @@
 #include <vector>
 #include <pthread.h>
 
-namespace ViconDataStreamSDK {
-namespace CPP {
-
+namespace ViconDataStreamSDK
+{
+namespace CPP
+{
 class Client;
+} // namespace CPP
+} // namespace ViconDataStreamSDK
 
-}  // namespace CPP
-}  // namespace ViconDataStreamSDK
-
-namespace vicon_driver {
-
+namespace vicon_driver
+{
 class ViconDriver
 {
  public:
@@ -81,7 +81,8 @@ class ViconDriver
   static void *grabThread(void *arg);
   bool processFrame(int64_t frame_time_usec, unsigned int frame_number);
   void processSubjects(int64_t frame_time_usec, unsigned int frame_number);
-  void processUnlabeledMarkers(int64_t frame_time_usec, unsigned int frame_number);
+  void processUnlabeledMarkers(int64_t frame_time_usec,
+                               unsigned int frame_number);
 
   ViconDataStreamSDK::CPP::Client *client_;
   bool connected_, running_;
@@ -94,4 +95,4 @@ class ViconDriver
 
 } // namespace vicon_driver
 
-#endif  // VICONDRIVER_VICON_DRIVER_H_
+#endif // VICONDRIVER_VICON_DRIVER_H_

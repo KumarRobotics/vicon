@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8.3)
 project(vicon_driver CXX)
 
 find_package(catkin REQUIRED)
-find_package(Boost 1.46 REQUIRED) # Only for enforcing minimum Boost version required for vicon sdk lib
+
+# Only for enforcing minimum Boost version required for the Vicon SDK lib
+find_package(Boost 1.46 REQUIRED)
 
 if(WIN32)
   message(FATAL_ERROR "Windows is not yet supported")
@@ -13,26 +15,37 @@ if(NOT APPLE)
     set(SDK_DIR "${PROJECT_SOURCE_DIR}/vicon_sdk/Linux64")
     set(VICON_BOOST_LIB_SUFFIX ".so.1.51.0")
     list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ${VICON_BOOST_LIB_SUFFIX})
-    find_library(VICON_BOOST_THREAD_LIB boost_thread-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_SYSTEM_LIB boost_system-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_CHRONO_LIB boost_chrono-mt ${SDK_DIR} NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_THREAD_LIB boost_thread-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_SYSTEM_LIB boost_system-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_CHRONO_LIB boost_chrono-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
     list(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES ${VICON_BOOST_LIB_SUFFIX})
     unset(VICON_BOOST_LIB_SUFFIX)
-    set(VICON_BOOST_LIBS ${VICON_BOOST_THREAD_LIB} ${VICON_BOOST_SYSTEM_LIB} ${VICON_BOOST_CHRONO_LIB})
+    set(VICON_BOOST_LIBS ${VICON_BOOST_THREAD_LIB} ${VICON_BOOST_SYSTEM_LIB}
+      ${VICON_BOOST_CHRONO_LIB})
   else(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(SDK_DIR "${PROJECT_SOURCE_DIR}/vicon_sdk/Linux32")
     set(VICON_BOOST_LIB_SUFFIX ".so.1.51.0")
     list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ${VICON_BOOST_LIB_SUFFIX})
     find_library(VICON_BOOST_WAVE_LIB boost_wave-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_THREAD_LIB boost_thread-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_SYSTEM_LIB boost_system-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_SERIALIZATION_LIB boost_serialization-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_DATE_TIME_LIB boost_date_time-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_CHRONO_LIB boost_chrono-mt ${SDK_DIR} NO_DEFAULT_PATH)
-    find_library(VICON_BOOST_FILESYSTEM_LIB boost_filesystem-mt ${SDK_DIR} NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_THREAD_LIB boost_thread-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_SYSTEM_LIB boost_system-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_SERIALIZATION_LIB boost_serialization-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_DATE_TIME_LIB boost_date_time-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_CHRONO_LIB boost_chrono-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
+    find_library(VICON_BOOST_FILESYSTEM_LIB boost_filesystem-mt ${SDK_DIR}
+      NO_DEFAULT_PATH)
     unset(VICON_BOOST_LIB_SUFFIX)
-    set(VICON_BOOST_LIBS ${VICON_BOOST_WAVE_LIB} ${VICON_BOOST_THREAD_LIB} ${VICON_BOOST_SYSTEM_LIB}
-      ${VICON_BOOST_SERIALIZATION_LIB} ${VICON_BOOST_DATE_TIME_LIB} ${VICON_BOOST_CHRONO_LIB}
+    set(VICON_BOOST_LIBS ${VICON_BOOST_WAVE_LIB} ${VICON_BOOST_THREAD_LIB}
+      ${VICON_BOOST_SYSTEM_LIB} ${VICON_BOOST_SERIALIZATION_LIB}
+      ${VICON_BOOST_DATE_TIME_LIB} ${VICON_BOOST_CHRONO_LIB}
       ${VICON_BOOST_FILESYSTEM_LIB})
   endif()
   #message(STATUS "SDK_DIR: ${SDK_DIR}")
@@ -62,10 +75,12 @@ catkin_package(CATKIN_DEPENDS
   LIBRARIES ${PROJECT_NAME})
 
 # Force "no-as-needed", required for ViconSDK lib
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-O1 -Wl,--no-as-needed")
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-as-needed")
+set(CMAKE_INSTALL_RPATH
+  "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}")
 
-include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIRS})
+include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIRS}
+  ${YAMLCPP_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED src/vicon_driver.cpp src/vicon_calib.cpp)
 target_link_libraries(${PROJECT_NAME}

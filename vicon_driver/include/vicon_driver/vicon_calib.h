@@ -18,8 +18,9 @@
 #define VICONDRIVER_VICON_CALIB_H_
 
 #include <Eigen/Geometry>
-#include <vector>
 #include <map>
+#include <string>
+#include <vector>
 
 namespace vicon_driver
 {

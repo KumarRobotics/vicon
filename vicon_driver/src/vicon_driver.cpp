@@ -15,22 +15,20 @@
  */
 
 #include "vicon_driver/vicon_driver.h"
-#include <iostream>
 #include <time.h>
-#include <unistd.h>
+#include <iostream>
 #include "Client.h"
 
 namespace ViconSDK = ViconDataStreamSDK::CPP;
 
 namespace vicon_driver
 {
-
-ViconDriver::ViconDriver() :
-    connected_(false),
-    running_(false),
-    subject_callback_(NULL),
-    unlabeled_markers_callback_(NULL),
-    unlabeled_marker_data_enabled_(false)
+ViconDriver::ViconDriver()
+    : connected_(false),
+      running_(false),
+      subject_callback_(NULL),
+      unlabeled_markers_callback_(NULL),
+      unlabeled_marker_data_enabled_(false)
 {
   client_ = new ViconSDK::Client();
 }
@@ -69,8 +67,7 @@ bool ViconDriver::init(std::string host)
 
   client_->SetStreamMode(ViconSDK::StreamMode::ClientPull);
   client_->SetAxisMapping(ViconSDK::Direction::Forward,
-                          ViconSDK::Direction::Left,
-                          ViconSDK::Direction::Up);
+                          ViconSDK::Direction::Left, ViconSDK::Direction::Up);
   return true;
 }
 
@@ -78,7 +75,8 @@ bool ViconDriver::start(void)
 {
   if(!connected_)
   {
-    std::cout << "Called start but not connected to the Vicon Datastream server, call init first" << std::endl;
+    std::cout << "Called start but not connected to the Vicon Datastream "
+                 "server, call init first" << std::endl;
     return false;
   }
 
@@ -99,7 +97,8 @@ bool ViconDriver::start(void)
     nanosleep(&ts_sleep, NULL);
 
     grab_frames_ = true;
-    int ret = pthread_create(&grab_thread_, NULL, ViconDriver::grabThread, this);
+    int ret =
+        pthread_create(&grab_thread_, NULL, ViconDriver::grabThread, this);
     if(ret != 0)
       return false;
 
@@ -134,7 +133,8 @@ bool ViconDriver::enableUnlabeledMarkerData(bool enable)
   else
     client_->DisableUnlabeledMarkerData();
 
-  unlabeled_marker_data_enabled_ = client_->IsUnlabeledMarkerDataEnabled().Enabled;
+  unlabeled_marker_data_enabled_ =
+      client_->IsUnlabeledMarkerDataEnabled().Enabled;
   return (unlabeled_marker_data_enabled_ == enable);
 }
 
@@ -164,7 +164,7 @@ void *ViconDriver::grabThread(void *arg)
   else
     frame_rate = 100; // Fallback
 
-  int32_t dt = 1000000/frame_rate; // usec
+  int32_t dt = 1000000 / frame_rate; // usec
   const double alpha = 0.9; // For low pass filter
 
   while(vd->grab_frames_)
@@ -176,7 +176,9 @@ void *ViconDriver::grabThread(void *arg)
 
     const double latency = vd->client_->GetLatencyTotal().Total;
 
-    const int64_t expected_frame_time = (ts_now.tv_sec*1000000 + (ts_now.tv_nsec+500)/1000) - latency*1e6;
+    const int64_t expected_frame_time =
+        (ts_now.tv_sec * 1000000 + (ts_now.tv_nsec + 500) / 1000) -
+        latency * 1e6;
     if(last_frame_time == 0)
       last_frame_time = expected_frame_time - dt;
 
@@ -188,9 +190,9 @@ void *ViconDriver::grabThread(void *arg)
     const int32_t frame_diff = frame_number - last_frame_number;
 
     // Low pass filter to remove jitter noise in dt
-    dt = alpha*dt + (1-alpha)*(time_diff/frame_diff);
+    dt = alpha * dt + (1 - alpha) * (time_diff / frame_diff);
 
-    const int64_t frame_time = last_frame_time + frame_diff*dt;
+    const int64_t frame_time = last_frame_time + frame_diff * dt;
     last_frame_time = frame_time;
     last_frame_number = frame_number;
 
@@ -203,7 +205,8 @@ void *ViconDriver::grabThread(void *arg)
   return NULL;
 }
 
-bool ViconDriver::processFrame(int64_t frame_time_usec, unsigned int frame_number)
+bool ViconDriver::processFrame(int64_t frame_time_usec,
+                               unsigned int frame_number)
 {
   static unsigned int last_frame_number = 0;
   static unsigned int frame_count = 0, dropped_frame_count = 0;
@@ -217,10 +220,13 @@ bool ViconDriver::processFrame(int64_t frame_time_usec, unsigned int frame_numbe
     if(frame_diff > 1)
     {
       dropped_frame_count += (frame_diff - 1);
-      double dropped_frame_pct = (double)dropped_frame_count / frame_count * 100;
-      std::cout << "Dropped " << frame_diff - 1 << " more (total " << dropped_frame_count <<
-          "/" << frame_count << ", " << dropped_frame_pct <<
-          "%) frame(s) dropped. Consider adjusting rates." << std::endl;
+      double dropped_frame_pct =
+          (double)dropped_frame_count / frame_count * 100;
+      std::cout << "Dropped " << frame_diff - 1 << " more (total "
+                << dropped_frame_count << "/" << frame_count << ", "
+                << dropped_frame_pct
+                << "%) frame(s) dropped. Consider adjusting rates."
+                << std::endl;
     }
   }
   last_frame_number = frame_number;
@@ -234,7 +240,8 @@ bool ViconDriver::processFrame(int64_t frame_time_usec, unsigned int frame_numbe
   return true;
 }
 
-void ViconDriver::processSubjects(int64_t frame_time_usec, unsigned int frame_number)
+void ViconDriver::processSubjects(int64_t frame_time_usec,
+                                  unsigned int frame_number)
 {
   std::string subject_name, segment_name;
   static unsigned int count = 0;
@@ -244,7 +251,8 @@ void ViconDriver::processSubjects(int64_t frame_time_usec, unsigned int frame_nu
   for(unsigned int i = 0; i < n_subjects; i++)
   {
     subject_name = client_->GetSubjectName(i).SubjectName;
-    unsigned int n_segments = client_->GetSegmentCount(subject_name).SegmentCount;
+    unsigned int n_segments =
+        client_->GetSegmentCount(subject_name).SegmentCount;
     if(n_segments == 0)
     {
       if(count % 100 == 0)
@@ -255,8 +263,8 @@ void ViconDriver::processSubjects(int64_t frame_time_usec, unsigned int frame_nu
       if(n_segments > 1)
       {
         if(count % 100 == 0)
-          std::cout << "Multiple segments for subject " << subject_name <<
-              ", only publishing pose for first segment" << std::endl;
+          std::cout << "Multiple segments for subject " << subject_name
+                    << ", only publishing pose for first segment" << std::endl;
       }
 
       ViconDriver::Subject subject;
@@ -266,20 +274,21 @@ void ViconDriver::processSubjects(int64_t frame_time_usec, unsigned int frame_nu
       ViconSDK::Output_GetSegmentGlobalTranslation trans =
           client_->GetSegmentGlobalTranslation(subject_name, segment_name);
       ViconSDK::Output_GetSegmentGlobalRotationQuaternion quat =
-          client_->GetSegmentGlobalRotationQuaternion(subject_name, segment_name);
+          client_->GetSegmentGlobalRotationQuaternion(subject_name,
+                                                      segment_name);
 
       subject.time_usec = frame_time_usec;
       subject.frame_number = frame_number;
       subject.name = subject_name;
 
-      if (trans.Result == ViconSDK::Result::Success &&
-          quat.Result == ViconSDK::Result::Success &&
-          !trans.Occluded && !quat.Occluded)
+      if(trans.Result == ViconSDK::Result::Success &&
+         quat.Result == ViconSDK::Result::Success && !trans.Occluded &&
+         !quat.Occluded)
       {
         subject.occluded = false;
-        subject.translation[0] = trans.Translation[0]/1000.0;
-        subject.translation[1] = trans.Translation[1]/1000.0;
-        subject.translation[2] = trans.Translation[2]/1000.0;
+        subject.translation[0] = trans.Translation[0] / 1000.0;
+        subject.translation[1] = trans.Translation[1] / 1000.0;
+        subject.translation[2] = trans.Translation[2] / 1000.0;
         subject.rotation[0] = quat.Rotation[0];
         subject.rotation[1] = quat.Rotation[1];
         subject.rotation[2] = quat.Rotation[2];
@@ -297,18 +306,21 @@ void ViconDriver::processSubjects(int64_t frame_time_usec, unsigned int frame_nu
         subject.rotation[3] = 1;
       }
 
-      unsigned int n_subject_markers = client_->GetMarkerCount(subject_name).MarkerCount;
-      for(unsigned int i_markers = 0; i_markers < n_subject_markers; i_markers++)
+      unsigned int n_subject_markers =
+          client_->GetMarkerCount(subject_name).MarkerCount;
+      for(unsigned int i_markers = 0; i_markers < n_subject_markers;
+          i_markers++)
       {
         Marker marker;
-        marker.name = client_->GetMarkerName(subject_name, i_markers).MarkerName;
+        marker.name =
+            client_->GetMarkerName(subject_name, i_markers).MarkerName;
         marker.subject_name = subject_name;
 
         ViconSDK::Output_GetMarkerGlobalTranslation translation =
             client_->GetMarkerGlobalTranslation(subject_name, marker.name);
-        marker.translation[0] = translation.Translation[0]/1000.0;
-        marker.translation[1] = translation.Translation[1]/1000.0;
-        marker.translation[2] = translation.Translation[2]/1000.0;
+        marker.translation[0] = translation.Translation[0] / 1000.0;
+        marker.translation[1] = translation.Translation[1] / 1000.0;
+        marker.translation[2] = translation.Translation[2] / 1000.0;
         marker.occluded = translation.Occluded;
 
         subject.markers.push_back(marker);
@@ -319,7 +331,8 @@ void ViconDriver::processSubjects(int64_t frame_time_usec, unsigned int frame_nu
   }
 }
 
-void ViconDriver::processUnlabeledMarkers(int64_t frame_time_usec, unsigned int frame_number)
+void ViconDriver::processUnlabeledMarkers(int64_t frame_time_usec,
+                                          unsigned int frame_number)
 {
   if(!unlabeled_marker_data_enabled_)
     return;
@@ -328,15 +341,17 @@ void ViconDriver::processUnlabeledMarkers(int64_t frame_time_usec, unsigned int 
   unlabeled_markers.time_usec = frame_time_usec;
   unlabeled_markers.frame_number = frame_number;
 
-  unsigned int n_unlabeled_markers = client_->GetUnlabeledMarkerCount().MarkerCount;
+  unsigned int n_unlabeled_markers =
+      client_->GetUnlabeledMarkerCount().MarkerCount;
   for(unsigned int i_markers = 0; i_markers < n_unlabeled_markers; i_markers++)
   {
     Marker marker;
 
-    ViconSDK::Output_GetUnlabeledMarkerGlobalTranslation translation = client_->GetUnlabeledMarkerGlobalTranslation(i_markers);
-    marker.translation[0] = translation.Translation[0]/1000.0;
-    marker.translation[1] = translation.Translation[1]/1000.0;
-    marker.translation[2] = translation.Translation[2]/1000.0;
+    ViconSDK::Output_GetUnlabeledMarkerGlobalTranslation translation =
+        client_->GetUnlabeledMarkerGlobalTranslation(i_markers);
+    marker.translation[0] = translation.Translation[0] / 1000.0;
+    marker.translation[1] = translation.Translation[1] / 1000.0;
+    marker.translation[2] = translation.Translation[2] / 1000.0;
     marker.occluded = false; // unlabeled markers cannot be occluded
 
     unlabeled_markers.markers.push_back(marker);
@@ -346,4 +361,4 @@ void ViconDriver::processUnlabeledMarkers(int64_t frame_time_usec, unsigned int 
     unlabeled_markers_callback_(unlabeled_markers);
 }
 
-}  // namespace vicon_driver
+} // namespace vicon_driver

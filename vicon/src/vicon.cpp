@@ -16,20 +16,22 @@ static std::string calib_files_dir;
 static bool running = false;
 static pthread_mutex_t calib_set_mutex = PTHREAD_MUTEX_INITIALIZER;
 static std::map<const std::string, bool> calib_set;
-static std::map<const std::string, Eigen::Affine3d, std::less<const std::string>,
-    Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > calib_pose;
-
+static std::map<
+    const std::string, Eigen::Affine3d, std::less<const std::string>,
+    Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > >
+    calib_pose;
 
 static void *loadCalibThread(void *arg)
 {
-  std::string *subject_name = reinterpret_cast<std::string*>(arg);
+  std::string *subject_name = reinterpret_cast<std::string *>(arg);
   std::string calib_filename = calib_files_dir + "/" + *subject_name + ".yaml";
   Eigen::Affine3d zero_pose;
 
   if(!vicon_driver::calib::loadZeroPoseFromFile(calib_filename, zero_pose))
   {
-    ROS_WARN_STREAM("Error loading calib for " << *subject_name << " from file " << calib_filename <<
-                    ", setting calib pose to Identity");
+    ROS_WARN_STREAM("Error loading calib for "
+                    << *subject_name << " from file " << calib_filename
+                    << ", setting calib pose to Identity");
   }
 
   calib_pose[*subject_name] = zero_pose.inverse();
@@ -66,15 +68,18 @@ static bool loadCalib(const std::string subject_name)
 static void saveCalibThread(const vicon::SetPose::Request &req)
 {
   Eigen::Affine3d zero_pose;
-  Eigen::Vector3d t(req.pose.position.x, req.pose.position.y, req.pose.position.z);
-  Eigen::Quaterniond q(req.pose.orientation.w, req.pose.orientation.x, req.pose.orientation.y, req.pose.orientation.z);
+  Eigen::Vector3d t(req.pose.position.x, req.pose.position.y,
+                    req.pose.position.z);
+  Eigen::Quaterniond q(req.pose.orientation.w, req.pose.orientation.x,
+                       req.pose.orientation.y, req.pose.orientation.z);
   zero_pose.setIdentity();
   zero_pose.translate(t);
   zero_pose.rotate(q);
 
   zero_pose = zero_pose * calib_pose[req.subject_name].inverse();
 
-  std::string calib_filename = calib_files_dir + "/" + req.subject_name + ".yaml";
+  std::string calib_filename =
+      calib_files_dir + "/" + req.subject_name + ".yaml";
   if(vicon_driver::calib::saveZeroPoseToFile(zero_pose, calib_filename))
   {
     pthread_mutex_lock(&calib_set_mutex);
@@ -83,11 +88,13 @@ static void saveCalibThread(const vicon::SetPose::Request &req)
   }
   else
   {
-    ROS_ERROR_STREAM("Error saving zero pose for " << req.subject_name << ", keeping old calib pose");
+    ROS_ERROR_STREAM("Error saving zero pose for "
+                     << req.subject_name << ", keeping old calib pose");
   }
 }
 
-static bool saveCalib(vicon::SetPose::Request &req, vicon::SetPose::Response &res)
+static bool saveCalib(vicon::SetPose::Request &req,
+                      vicon::SetPose::Response &res)
 {
   boost::thread save_calib_thread(saveCalibThread, req);
   save_calib_thread.detach();
@@ -120,7 +127,7 @@ static void subject_publish_callback(const ViconDriver::Subject &subject)
 
     vicon::Subject subject_ros;
     subject_ros.header.seq = subject.frame_number;
-    subject_ros.header.stamp = ros::Time(subject.time_usec/1e6);
+    subject_ros.header.stamp = ros::Time(subject.time_usec / 1e6);
     subject_ros.header.frame_id = "/vicon";
     subject_ros.name = subject.name;
     subject_ros.occluded = subject.occluded;
@@ -145,7 +152,8 @@ static void subject_publish_callback(const ViconDriver::Subject &subject)
   }
 }
 
-static void unlabeled_markers_publish_callback(const ViconDriver::Markers &markers)
+static void unlabeled_markers_publish_callback(
+    const ViconDriver::Markers &markers)
 {
   if(!running)
     return;
@@ -154,13 +162,14 @@ static void unlabeled_markers_publish_callback(const ViconDriver::Markers &marke
 
   if(!publisher_created)
   {
-    unlabeled_markers_pub = nh->advertise<vicon::Markers>("unlabeled_markers", 10);
+    unlabeled_markers_pub =
+        nh->advertise<vicon::Markers>("unlabeled_markers", 10);
     publisher_created = true;
   }
 
   vicon::Markers markers_ros;
   markers_ros.header.seq = markers.frame_number;
-  markers_ros.header.stamp = ros::Time(markers.time_usec/1e6);
+  markers_ros.header.stamp = ros::Time(markers.time_usec / 1e6);
   markers_ros.header.frame_id = "/vicon";
   markers_ros.markers.resize(markers.markers.size());
   for(size_t i = 0; i < markers_ros.markers.size(); i++)
@@ -188,7 +197,8 @@ int main(int argc, char **argv)
   bool enable_unlabeled_markers;
   nh->param("enable_unlabeled_markers", enable_unlabeled_markers, false);
 
-  ros::ServiceServer set_zero_pose_srv = nh->advertiseService("set_zero_pose", &saveCalib);
+  ros::ServiceServer set_zero_pose_srv =
+      nh->advertiseService("set_zero_pose", &saveCalib);
 
   ViconDriver vd;
   if(!vd.init(vicon_server))
