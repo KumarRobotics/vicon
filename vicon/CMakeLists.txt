@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vicon)
 
+# set default build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
 find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs std_srvs
   message_generation cmake_modules vicon_driver)
 find_package(Eigen REQUIRED)

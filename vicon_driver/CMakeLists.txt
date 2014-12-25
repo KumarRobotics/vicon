@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vicon_driver CXX)
 
+# set default build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
 find_package(catkin REQUIRED)
 
 # Only for enforcing minimum Boost version required for the Vicon SDK lib
