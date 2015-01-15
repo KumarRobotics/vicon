@@ -10,11 +10,8 @@ ViconOdom::ViconOdom(ros::NodeHandle &nh)
   double max_accel;
   nh.param("max_accel", max_accel, 5.0);
   nh.param("publish_tf", publish_tf_, false);
-  std::string model;
-  nh.param<std::string>("model", model, "");
-  if(model.empty())
-    throw std::runtime_error("vicon_odom: empty model name");
-  nh.param<std::string>("child_frame_id", child_frame_id_, model);
+  if(publish_tf_ && !nh.getParam("child_frame_id", child_frame_id_))
+    throw std::runtime_error("vicon_odom: child_frame_id required for publishing tf");
 
   // There should only be one vicon_fps, so we read from nh
   double dt, vicon_fps;
@@ -42,10 +39,8 @@ ViconOdom::ViconOdom(ros::NodeHandle &nh)
 
   // Initialize publisher and subscriber
   odom_pub_ = nh.advertise<nav_msgs::Odometry>("odom", 10);
-  vicon_sub_ = nh.subscribe(model, 10, &ViconOdom::ViconCallback, this,
-                            ros::TransportHints().tcpNoDelay());
-  ROS_INFO("Starting vicon_odom node for model: %s, child_frame_id: %s",
-           model.c_str(), child_frame_id_.c_str());
+  vicon_sub_ = nh.subscribe("vicon_subject", 10, &ViconOdom::ViconCallback,
+                            this, ros::TransportHints().tcpNoDelay());
 }
 
 void ViconOdom::ViconCallback(const vicon::Subject::ConstPtr &msg)
@@ -146,5 +141,7 @@ int main(int argc, char **argv)
   catch(const std::exception &e)
   {
     ROS_ERROR("%s: %s", nh.getNamespace().c_str(), e.what());
+    return 1;
   }
+  return 0;
 }
