@@ -5,10 +5,9 @@
   <arg name="output" default="screen"/>
 
   <node pkg="vicon_odom" type="vicon_odom" name="$(arg model)"
-    output="$(arg output)">
+    output="$(arg output)" ns="vicon">
     <param name="child_frame_id" type="string" value="$(arg child_frame_id)"/>
     <param name="publish_tf" type="bool" value="$(arg publish_tf)"/>
-    <param name="model" type="string" value="$(arg model)"/>
     <remap from="~vicon_subject" to="$(arg model)"/>
   </node>
 </launch>
