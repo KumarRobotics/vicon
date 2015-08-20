@@ -10,7 +10,8 @@ ViconOdom::ViconOdom(ros::NodeHandle &nh)
   double max_accel;
   nh.param("max_accel", max_accel, 5.0);
   nh.param("publish_tf", publish_tf_, false);
-  if(publish_tf_ && !nh.getParam("child_frame_id", child_frame_id_))
+  nh.param<std::string>("child_frame_id", child_frame_id_, "base_link");
+  if(publish_tf_ && child_frame_id_.empty())
     throw std::runtime_error("vicon_odom: child_frame_id required for publishing tf");
 
   // There should only be one vicon_fps, so we read from nh
