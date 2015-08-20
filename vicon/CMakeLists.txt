@@ -23,11 +23,11 @@ include_directories(${catkin_INCLUDE_DIRS} ${Eigen_INCLUDE_DIRS})
 
 add_executable(vicon src/vicon.cpp)
 target_link_libraries(vicon ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(vicon ${catkin_EXPORTED_TARGETS})
+add_dependencies(vicon ${catkin_EXPORTED_TARGETS} vicon_generate_messages_cpp)
 
 add_executable(vicon_calibrate src/vicon_calibrate.cpp)
 target_link_libraries(vicon_calibrate ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(vicon_calibrate ${catkin_EXPORTED_TARGETS})
+add_dependencies(vicon_calibrate ${catkin_EXPORTED_TARGETS} vicon_generate_messages_cpp)
 
 install(TARGETS vicon vicon_calibrate
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
