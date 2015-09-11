@@ -2,12 +2,15 @@
   <arg name="model"/>
   <arg name="child_frame_id" default="$(arg model)/base_link"/>
   <arg name="publish_tf" default="false"/>
+  <arg name="vicon_fps" default="100"/>
   <arg name="output" default="screen"/>
 
   <node pkg="vicon_odom" type="vicon_odom" name="$(arg model)"
     output="$(arg output)" ns="vicon">
     <param name="child_frame_id" type="string" value="$(arg child_frame_id)"/>
     <param name="publish_tf" type="bool" value="$(arg publish_tf)"/>
+    <param name="vicon_fps" type="int" value="$(arg vicon_fps)"/>
     <remap from="~vicon_subject" to="$(arg model)"/>
+    <remap from="~odom" to="/$(arg model)/odom"/>
   </node>
 </launch>
