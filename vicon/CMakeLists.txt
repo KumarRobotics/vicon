@@ -13,7 +13,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 add_message_files(DIRECTORY msg)
 add_service_files(FILES SetPose.srv)
-generate_messages(DEPENDENCIES nav_msgs geometry_msgs std_msgs)
+generate_messages(DEPENDENCIES nav_msgs geometry_msgs)
 
 catkin_package(CATKIN_DEPENDS roscpp geometry_msgs nav_msgs std_srvs
   message_runtime cmake_modules vicon_driver

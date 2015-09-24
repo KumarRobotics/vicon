@@ -10,6 +10,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+/// \file 
+/// The SDK client and supporting definitions.
+
 #ifdef WIN32
 
 #ifdef _EXPORTING
@@ -47,6 +50,10 @@ protected:
   virtual ~IStringFactory() {}
 };
 
+// A string managing class for DLL boundry safe text.
+// It ensures that strings are de-allocated with the same 
+// memory manager they are made with.  This allows you to use a debug 
+// build of your client with a release SDK.
 class String
 {
 public:
@@ -218,48 +225,59 @@ namespace Unit
 
 namespace Result
 {
+  /// The Result code indicates the success or failure of a function.
   enum Enum
   {
-    Unknown,
-    NotImplemented,
-    Success,
-    InvalidHostName,
-    InvalidMulticastIP,
-    ClientAlreadyConnected,
-    ClientConnectionFailed,
-    ServerAlreadyTransmittingMulticast,
-    ServerNotTransmittingMulticast,
-    NotConnected,
-    NoFrame,
-    InvalidIndex,
-    InvalidSubjectName,
-    InvalidSegmentName,
-    InvalidMarkerName,
-    InvalidDeviceName,
-    InvalidDeviceOutputName,
-    InvalidLatencySampleName,
-    CoLinearAxes,
-    LeftHandedAxes
+    Unknown, ///< The result is unknown. Treat it as a failure.
+    NotImplemented, ///< The function called has not been implemented in this version of the SDK.
+    Success, ///< The function call succeeded.
+    InvalidHostName, ///< The "HostName" parameter passed to Connect() is invalid.
+    InvalidMulticastIP, ///< The "MulticastIP" parameter was not in the range "224.0.0.0" - "239.255.255.255"
+    ClientAlreadyConnected, ///< Connect() was called whilst already connected to a DataStream.
+    ClientConnectionFailed, ///< Connect() could not establish a connection to the DataStream server.
+    ServerAlreadyTransmittingMulticast, ///< StartTransmittingMulticast() was called when the current DataStream server was already transmitting multicast on behalf of this client.
+    ServerNotTransmittingMulticast, ///< StopTransmittingMulticast() was called when the current DataStream server was not transmitting multicasr on behalf of this client.
+    NotConnected, ///< You have called a function which requires a connection to the DataStream server, but do not have a connection.
+    NoFrame, ///< You have called a function which requires a frame to be fetched from the DataStream server, but do not have a frame.
+    InvalidIndex, ///< An index you have passed to a function is out of range.
+    InvalidCameraName, ///< The Camera Name you passed to a function is invalid in this frame.
+    InvalidSubjectName, ///< The Subject Name you passed to a function is invalid in this frame.
+    InvalidSegmentName, ///< The Segment Name you passed to a function is invalid in this frame.
+    InvalidMarkerName, ///< The Marker Name you passed to a function is invalid in this frame.
+    InvalidDeviceName, ///< The Device Name you passed to a function is invalid in this frame.
+    InvalidDeviceOutputName, ///< The Device Output Name you passed to a function is invalid in this frame.
+    InvalidLatencySampleName, ///< The Latency Sample Name you passed to a function is invalid in this frame.
+    CoLinearAxes, ///< The directions passed to SetAxisMapping() contain input which would cause two or more axis to lie along the same line, e.g. "Up" and "Down" are on the same line.
+    LeftHandedAxes, ///< The directions passed to SetAxisMapping() would result in a left handed co-ordinate system. This is not supported in the SDK.
+    HapticAlreadySet ///< Haptic feedback is already set
   };
 }
 
+  /// The version information returned by Client::GetVersion.
   class Output_GetVersion
   {
   public:
+    /// Major version number of the SDK.
     unsigned int Major;
+    /// Minor version number of the SDK.
     unsigned int Minor;
+    /// Point version number of the SDK.
     unsigned int Point;
   };
 
+  /// The result of Client::Connect.
   class Output_Connect
   {
   public:
+    /// The status of the connect operation.
     Result::Enum Result;
   };
 
+  /// The result of Client::ConnectToMulticast.
   class Output_ConnectToMulticast
   {
   public:
+    /// The status of the connect operation.
     Result::Enum Result;
   };
 
@@ -311,6 +329,12 @@ namespace Result
     Result::Enum Result;
   };
 
+  class Output_EnableCentroidData
+  {
+  public:
+    Result::Enum Result;
+  };
+
   class Output_DisableSegmentData
   {
   public:
@@ -330,6 +354,12 @@ namespace Result
   };
 
   class Output_DisableDeviceData
+  {
+  public:
+    Result::Enum Result;
+  };
+
+  class Output_DisableCentroidData
   {
   public:
     Result::Enum Result;
@@ -359,7 +389,19 @@ namespace Result
     bool Enabled;
   };
 
+  class Output_IsCentroidDataEnabled
+  {
+  public:
+    bool Enabled;
+  };
+
   class Output_SetStreamMode
+  {
+  public:
+    Result::Enum Result;
+  };
+
+  class Output_SetApexDeviceFeedback
   {
   public:
     Result::Enum Result;
@@ -760,41 +802,237 @@ namespace Result
     bool         Occluded;
   };
 
+  class Output_GetCameraCount
+  {
+  public:
+    Result::Enum Result;
+    unsigned int CameraCount;
+  };
+
+  class Output_GetCameraName
+  {
+  public:
+    Result::Enum     Result;
+    String           CameraName;
+  };
+
+  class Output_GetCentroidCount
+  {
+  public:
+    Result::Enum Result;
+    unsigned int CentroidCount;
+  };
+
+  class Output_GetCentroidPosition
+  {
+  public:
+    Result::Enum Result;
+    double CentroidPosition[ 2 ];
+    double Radius;
+//    double Accuracy;
+  };
+
   class ClientImpl;
 
+  ///  Vicon DataStream SDK client.
+  ///  The core client class for C++.
   class CLASS_DECLSPEC Client
   {
   public:
+    /// Construction.
+    /// You can create many instances of the Vicon DataStream Client which can connect to multiple Vicon DataStream Servers.
+    /// C++ version of the SDK is object oriented, so use the class constructor.
+    ///
+    ///     {
+    ///         ViconDataStreamSDK::CPP::Client StackClient;
+    ///         Output_SomeFunction Output = StackClient.SomeFunction();
+    ///         // ...
+    ///     } 
+    ///     // Client is implicitly destroyed as it goes out of scope.
+    ///
+    /// Alternatively it can be made on the heap.
+    ///
+    ///     ViconDataStreamSDK::CPP::Client * pHeapClient = new ViconDataStreamSDK::CPP::Client();
+    ///     Output_SomeFunction Output = pHeapClient->SomeFunction( Input );
+    ///     delete pHeapClient;
+    ///
     Client();
+
+    /// Destruction.
+    /// Destruction will Disconnect if required.
+    /// 
+    /// See Client::Client for an example.
     ~Client();
 
+    /// Get the version of the Vicon DataStream SDK.
+    /// + **Major**
+    ///   When this number increases we break backwards compatibility with previous major versions.
+    /// + **Minor**
+    ///   When this number increases we have probably added new functionality to the SDK without breaking 
+    ///   backwards compatibility with previous versions.
+    /// + **Point**
+    ///   When this number increases, we have introduced a bug fix or performance enhancement without breaking 
+    ///   backwards compatibility with previous versions.
+    /// 
+    /// The function can be called without the client being connected.
+    /// 
+    ///      ViconDataStreamSDK::CPP::Client MyClient;
+    ///      Output_GetVersion Output = MyClient.GetVersion();
+    /// 
+    /// \return Output_GetVersion class containing the version information.
     Output_GetVersion  GetVersion() const;
 
-    Output_Connect     Connect( const String & HostName );
+    /// Establish a dedicated connection to a Vicon DataStream Server.
+    /// 
+    /// See Also : ConnectToMulticast, Disconnect, IsConnected.
+    /// 
+    /// The function defaults to connecting on port 801. 
+    /// You can specify an alternate port number after a colon.
+    /// This is for future compatability, current products serve data on port 801 only.
+    /// 
+    ///      ViconDataStreamSDK::CPP::Client MyClient;
+    ///      Output_Connect Output = MyClient.Connect( "localhost" );
+    /// 
+    /// \param  HostName The DNS identifiable name, or IP address of the PC hosting the DataStream server. 
+    ///                  For example:
+    ///                  + "localhost"
+    ///                  + "MyViconPC:801"
+    ///                  + "10.0.0.2"
+    /// \return An Output_Connect class containing the result of the connect operation.
+    ///         The Result will be: 
+    ///         + Success
+    ///         + InvalidHostName
+    ///         + ClientAlreadyConnected 
+    ///         + ClientConnectionFailed
+    Output_Connect Connect( const String & HostName );
+
+    /// Connect to a Vicon DataStream Server's Multicast stream. 
+    /// The stream content is managed by a client who calls StartTransmittingMulticast().
+    /// 
+    /// See Also : Connect, Disconnect, IsConnected, StartTransmittingMulticast, StopTransmittingMulticast
+    /// 
+    ///      // class Output_ConnectToMulticast
+    ///      // {
+    ///      // public:
+    ///      // Result::Enum Result;
+    ///      // };
+    ///      
+    ///      ViconDataStreamSDK::CPP::Client MyClient;
+    ///      Output_ConnectToMulticast Output = MyClient.ConnectToMulticast( "localhost", "224.0.0.0" );
+    ///
+    ///
+    /// \param  LocalIP      The DNS identifiable name, or IP address of the local Ethernet interface 
+    ///                      on which you wish to receive multicast data. 
+    ///                      You should not specify a port (any port specified will be ignored).
+    ///                      For example:
+    ///                      + "localhost"
+    ///                      + "10.0.0.2"
+    /// \param  MulticastIP  The IP Address of the Multicast group on which data will be received. 
+    ///                      The address should be in the range "224.0.0.0" - "239.255.255.255" 
+    ///                      You may also specify a port by appending it to the end of the IP Address 
+    ///                      after a colon. e.g. 224.0.0.0:30001. 
+    ///                      If you do not specify a port it will default to 44801.
+    /// \return An Output_ConnectToMulticast class containing the result of the connect operation.
+    ///         The Result will be: 
+    ///         + Success
+    ///         + InvalidHostName
+    ///         + InvalidMulticastIP
+    ///         + ClientAlreadyConnected 
+    ///         + ClientConnectionFailed
     Output_ConnectToMulticast ConnectToMulticast( const String & LocalIP, const String & MulticastIP );
+
+    /// Disconnect from the Vicon DataStream Server.
+    /// 
+    /// See Also : Connect, IsConnected
+    /// 
+    ///       ViconDataStreamSDK::CPP::Client MyClient;
+    ///       MyClient.Connect( "localhost" );
+    ///       Output_Disconnect Output = MyClient.Disconnect();
+    /// 
+    /// \return An Output_Disconnect class containing the result of the operation.
+    ///         The Result will be: 
+    ///         + Success
+    ///         + NotConnected
     Output_Disconnect  Disconnect();
+
+    /// Discover whether client is connected to the Vicon DataStream Server.
+    /// 
+    /// See Also : Connect, Disconnect
+    /// 
+    ///       ViconDataStreamSDK::CPP::CPP::Client MyClient;
+    ///       Output_IsConnected Output = MyClient.IsConnected()
+    ///       // Output.Connected == false
+    ///       MyClient.Connect( "localhost" );
+    ///       Output_IsConnected Output = MyClient.IsConnected()
+    ///       // Output.Connected == true
+    ///       // (assuming localhost is serving)
+    /// 
+    /// \return An Output_IsConnected class containing the true if you are 
+    ///         connected to the stream, otherwise false.
     Output_IsConnected IsConnected() const;
+
+    /// Ask the DataStream Server to start transmitting the data you are receiving directly to a Multicast address as well. 
+    /// This allows multiple clients to connect to your stream (via ConnectToMulticast() ) whilst minimizing network 
+    /// bandwidth use and frame delivery latency.
+    /// See Also : Connect, ConnectToMulticast, Disconnect, StopTransmittingMulticast
+    /// 
+    ///       ViconDataStreamSDK::CPP::CPP::Client MyClient;
+    ///       MyClient.Connect( "localhost" );
+    ///       MyClient.StartTransmittingMulticast( "10.0.0.1", "224.0.0.0" );
+    /// 
+    /// \param  ServerIP      The IP Address of the server Ethernet interface from which the Multicast data will be sent. 
+    ///                       You should not specify a port number (any port number specified will be ignored).
+    /// \param  MulticastIP   The IP Address of the Multicast group to which multicast data will be sent. 
+    ///                       The address should be in the range 224.0.0.0 - 239.255.255.255. You may also specify 
+    ///                       the port the data will be sent to by appending it to the IP Address after a colon 
+    ///                       e.g. 224.0.0.0:30001. If you do not specify a port it will default to 44801. 
+    /// \return An Output_StartTransmittingMulticast class containing the result of the operation.
+    ///         The Result will be: 
+    ///         + Success
+    ///         + NotConnected
+    ///         + InvalidMulticastIP
+    ///         + ServerAlreadyTransmittingMulticast
     Output_StartTransmittingMulticast StartTransmittingMulticast( const String & ServerIP,
                                                                   const String & MulticastIP );
-
+    /// Ask the DataStream Server to stop transmitting the data you are receiving directly to a Multicast address as well. 
+    /// You must previously have started a transmission via StartTransmittingMulticast.
+    /// 
+    /// See Also : Connect, ConnectToMulticast, Disconnect, StartTransmittingMulticast
+    /// 
+    ///       ViconDataStreamSDK::CPP::CPP::Client MyClient;
+    ///       MyClient.Connect( "localhost" );
+    ///       MyClient.StartTransmittingMulticast( "10.0.0.1", "224.0.0.0" );
+    ///       // Do some stuff
+    ///       MyClient.StopTransmittingMulticast();
+    /// 
+    /// \return An Output_StopTransmittingMulticast class containing the result of the operation.
+    ///         The Result will be: 
+    ///         + Success
+    ///         + NotConnected
+    ///         + ServerNotTransmittingMulticast
     Output_StopTransmittingMulticast StopTransmittingMulticast();
 
     Output_EnableSegmentData         EnableSegmentData();
     Output_EnableMarkerData          EnableMarkerData();
     Output_EnableUnlabeledMarkerData EnableUnlabeledMarkerData();
     Output_EnableDeviceData          EnableDeviceData();
+    Output_EnableCentroidData        EnableCentroidData();
 
     Output_DisableSegmentData         DisableSegmentData();
     Output_DisableMarkerData          DisableMarkerData();
     Output_DisableUnlabeledMarkerData DisableUnlabeledMarkerData();
     Output_DisableDeviceData          DisableDeviceData();
+    Output_DisableCentroidData        DisableCentroidData();
 
     Output_IsSegmentDataEnabled         IsSegmentDataEnabled() const;
     Output_IsMarkerDataEnabled          IsMarkerDataEnabled() const;
     Output_IsUnlabeledMarkerDataEnabled IsUnlabeledMarkerDataEnabled() const;
     Output_IsDeviceDataEnabled          IsDeviceDataEnabled() const;
-    
+    Output_IsCentroidDataEnabled        IsCentroidDataEnabled() const;    
+
     Output_SetStreamMode SetStreamMode( const StreamMode::Enum Mode );
+
+    Output_SetApexDeviceFeedback SetApexDeviceFeedback( const String& i_rDeviceName, bool i_bOn );
 
     Output_SetAxisMapping SetAxisMapping( const Direction::Enum XAxis, const Direction::Enum YAxis, const Direction::Enum ZAxis );
     Output_GetAxisMapping GetAxisMapping() const;
@@ -843,6 +1081,27 @@ namespace Result
     Output_GetSegmentStaticRotationQuaternion GetSegmentStaticRotationQuaternion( const String & SubjectName,
                                                                                   const String & SegmentName ) const;
 
+    /// Return the static pose rotation of a subject segment in EulerXYZ co-ordinates.
+    ///
+    /// See Also : GetSegmentStaticTranslation, GetSegmentStaticRotationHelical, GetSegmentStaticRotationMatrix, 
+    /// GetSegmentStaticRotationQuaternion, GetSegmentLocalTranslation, GetSegmentLocalRotationHelical, 
+    /// GetSegmentLocalRotationMatrix, GetSegmentLocalRotationQuaternion, GetSegmentLocalRotationEulerXYZ.
+    /// 
+    ///      ViconDataStreamSDK::CPP::Client MyClient;
+    ///      MyClient.Connect( "localhost" );
+    ///      MyClient.GetFrame();
+    ///      Output_GetSegmentStaticRotationEulerXYZ Output;
+    ///      Output = MyClient.GetSegmentStaticRotationEulerXYZ( "Alice", "Pelvis" );
+    /// 
+    /// \param  SubjectName The name of the subject.
+    /// \param  SegmentName The name of the segment.
+    /// \return A Output_GetSegmentStaticRotationEulerXYZ class containing the result of the request
+    ///         and the rotation of the segment \f$(x,y,z)\f$.
+    ///         + Success
+    ///         + NotConnected
+    ///         + NoFrame
+    ///         + InvalidSubjectName
+    ///         + InvalidSegmentName
     Output_GetSegmentStaticRotationEulerXYZ GetSegmentStaticRotationEulerXYZ( const String & SubjectName,
                                                                               const String & SegmentName ) const;
 
@@ -929,7 +1188,10 @@ namespace Result
     Output_GetEyeTrackerGlobalPosition GetEyeTrackerGlobalPosition( const unsigned int EyeTrackerIndex ) const;
     Output_GetEyeTrackerGlobalGazeVector GetEyeTrackerGlobalGazeVector( const unsigned int EyeTrackerIndex ) const;
 
-
+    Output_GetCameraCount GetCameraCount() const;
+    Output_GetCameraName GetCameraName( unsigned int i_CameraIndex ) const;
+    Output_GetCentroidCount GetCentroidCount( const std::string & i_rCameraName ) const;
+    Output_GetCentroidPosition GetCentroidPosition( const std::string & i_rCameraName, const unsigned int i_CentroidIndex ) const;
 
   private:
     ClientImpl * m_pClientImpl;
