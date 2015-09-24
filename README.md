@@ -42,7 +42,7 @@ Check the launch files in the vicon and `vicon_odom` packages. The output from t
 * For each of the model you have, launch `vicon_odom.launch` in `vicon_odom` package. Note that every `vicon_odom` you launched will now be run under the namespace `vicon`. For example, if your model name is `obj1`, then the `vicon_odom` node will be named `vicon/obj1`, the published odometry message will be named `vicon/obj1/odom`. Also, you can provide a `child_frame_id` for the published odometry message, if not, it will be defaulted to `model`.
 
   ```
-  roslaunch vicon_odom vicon_odom.launch model=<model> child_frame_id:=<frame> publish_tf:=<bool>
+  roslaunch vicon_odom vicon_odom.launch model:=<model> child_frame_id:=<frame> publish_tf:=<bool>
   ```
 
 #### Calibrating a Model
