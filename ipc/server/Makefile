@@ -10,13 +10,13 @@ OBJ := $(SRC:.cpp=.o)
 XDR := $(notdir $(wildcard $(XDR_DIR)/*.xdr))
 MSG := $(XDR:.xdr=.h)
 
-CFLAGS := -Wall -O2 -fPIC
-CXXFLAGS := $(CFLAGS)
-LDFLAGS := -Wl,-O1 -Wl,--as-needed -Wl,-unresolved-symbols=ignore-in-shared-libs
+CFLAGS += -Wall -O2 -fPIC
+CXXFLAGS += $(CFLAGS)
+LDFLAGS += -Wl,-O1 -Wl,--as-needed
 
-INCS := -I../../libvicon_driver/include -Iinclude `pkg-config --cflags eigen3 yaml-cpp`
-LIBS := -Wl,-rpath,../../libvicon_driver -L../../libvicon_driver -lvicon_driver \
-	-lipc `pkg-config --libs eigen3 yaml-cpp`
+INCS := -I../../vicon_driver/include -Iinclude `pkg-config --cflags eigen3`
+LIBS := -Wl,-rpath,../../vicon_driver -L../../vicon_driver -lvicon_driver \
+	-lipc `pkg-config --libs eigen3`
 
 all: $(MSG) $(BIN)
 

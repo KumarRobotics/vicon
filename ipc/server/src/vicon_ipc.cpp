@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Kartik Mohta <kartikmohta@gmail.com>
+ * Copyright 2012, 2014 Kartik Mohta <kartikmohta@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 #include <map>
 #include <set>
 #include "ipc.h"
-#include "ViconDriver.h"
-#include "ViconCalib.h"
+#include "vicon_driver/vicon_driver.h"
+#include "vicon_driver/vicon_calib.h"
 #include "msgs/ViconTypes.h"
 
 static std::string calib_files_dir;
@@ -45,7 +45,7 @@ static void *loadCalibThread(void *arg)
   std::string calib_filename = calib_files_dir + "/" + *subject_name + ".yaml";
   Eigen::Affine3d zero_pose;
 
-  if(!ViconCalib::loadZeroPoseFromFile(calib_filename, zero_pose))
+  if(!vicon_driver::calib::loadZeroPoseFromFile(calib_filename, zero_pose))
   {
     std::cerr << "Error loading calib for " << *subject_name << " from file " <<
         calib_filename << ", setting calib pose to Identity" << std::endl;
@@ -82,7 +82,8 @@ static bool loadCalib(const std::string subject_name)
   return it->second;
 }
 
-static void subject_publish_callback(const ViconDriver::Subject &subject)
+static void subject_publish_callback(
+    const vicon_driver::ViconDriver::Subject &subject)
 {
   static std::set<std::string> defined_msgs;
 
@@ -91,7 +92,8 @@ static void subject_publish_callback(const ViconDriver::Subject &subject)
   {
     if(pthread_mutex_trylock(&ipc_mutex) == 0)
     {
-      IPC_defineMsg(msgname.c_str(), IPC_VARIABLE_LENGTH, ViconSubject::getIPCFormat());
+      IPC_defineMsg(msgname.c_str(), IPC_VARIABLE_LENGTH,
+                    ViconSubject::getIPCFormat());
       pthread_mutex_unlock(&ipc_mutex);
       defined_msgs.insert(msgname);
     }
@@ -143,7 +145,8 @@ static void subject_publish_callback(const ViconDriver::Subject &subject)
   }
 }
 
-static void unlabeled_markers_publish_callback(const ViconDriver::Markers &markers)
+static void unlabeled_markers_publish_callback(
+  const vicon_driver::ViconDriver::Markers &markers)
 {
   static bool msg_defined = false;
   std::string msgname = "vicon_unlabeled_markers";
@@ -152,7 +155,8 @@ static void unlabeled_markers_publish_callback(const ViconDriver::Markers &marke
   {
     if(pthread_mutex_trylock(&ipc_mutex) == 0)
     {
-      IPC_defineMsg(msgname.c_str(), IPC_VARIABLE_LENGTH, ViconMarkers::getIPCFormat());
+      IPC_defineMsg(msgname.c_str(), IPC_VARIABLE_LENGTH,
+                    ViconMarkers::getIPCFormat());
       pthread_mutex_unlock(&ipc_mutex);
       msg_defined = true;
     }
@@ -168,8 +172,10 @@ static void unlabeled_markers_publish_callback(const ViconDriver::Markers &marke
   markers_ipc.markers = new ViconMarker[markers_ipc.num_markers];
   for(int i = 0; i < markers_ipc.num_markers; i++)
   {
-    markers_ipc.markers[i].name = const_cast<char*>(markers.markers[i].name.c_str());
-    markers_ipc.markers[i].subject_name = const_cast<char*>(std::string("").c_str());
+    markers_ipc.markers[i].name =
+      const_cast<char*>(markers.markers[i].name.c_str());
+    markers_ipc.markers[i].subject_name =
+      const_cast<char*>(std::string("").c_str());
     markers_ipc.markers[i].position[0] = markers.markers[i].translation[0];
     markers_ipc.markers[i].position[1] = markers.markers[i].translation[1];
     markers_ipc.markers[i].position[2] = markers.markers[i].translation[2];
@@ -187,7 +193,8 @@ int main(int argc, char **argv)
 {
   if(argc < 3)
   {
-    std::cout << "Usage: " << argv[0] << " <vicon_server> <calib_files_dir>" << std::endl;
+    std::cout << "Usage: " << argv[0] << " <vicon_server> <calib_files_dir>" <<
+      std::endl;
     return 1;
   }
 
@@ -201,7 +208,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  ViconDriver vd;
+  vicon_driver::ViconDriver vd;
   if(vd.init(vicon_hostname))
   {
     vd.setSubjectPubCallback(subject_publish_callback);

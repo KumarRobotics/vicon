@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package>
+  <name>vicon_odom</name>
+  <version>0.0.2</version>
+  <description>The vicon_odom package</description>
+  <maintainer email="kmohta@seas.upenn.edu">Kartik Mohta</maintainer>
+  <maintainer email="quchao@seas.upenn.edu">Chao Qu</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>vicon</build_depend>
+  <build_depend>tf2_ros</build_depend>
+
+  <run_depend>vicon</run_depend>
+  <run_depend>tf2_ros</run_depend>
+
+</package>

@@ -1,0 +1,95 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(vicon_driver CXX)
+
+# set default build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
+find_package(catkin REQUIRED)
+
+# Only for enforcing minimum Boost version required for the Vicon SDK lib
+find_package(Boost 1.53 REQUIRED)
+
+if(WIN32 OR APPLE)
+  message(FATAL_ERROR "Windows/MacOSX is not supported")
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(SDK_DIR "${PROJECT_SOURCE_DIR}/vicon_sdk/Linux64")
+  set(VICON_BOOST_LIB_SUFFIX ".so.1.53.0")
+  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ${VICON_BOOST_LIB_SUFFIX})
+  find_library(VICON_BOOST_LOCALE_LIB boost_locale-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_SYSTEM_LIB boost_system-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_THREAD_LIB boost_thread-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_UNIT_TEST_LIB boost_unit_test_framework-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  list(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES ${VICON_BOOST_LIB_SUFFIX})
+  unset(VICON_BOOST_LIB_SUFFIX)
+  set(VICON_BOOST_LIBS ${VICON_BOOST_LOCALE_LIB} ${VICON_BOOST_SYSTEM_LIB}
+    ${VICON_BOOST_THREAD_LIB} ${VICON_BOOST_UNIT_TEST_LIB})
+else()
+  set(SDK_DIR "${PROJECT_SOURCE_DIR}/vicon_sdk/Linux32")
+  set(VICON_BOOST_LIB_SUFFIX ".so.1.53.0")
+  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ${VICON_BOOST_LIB_SUFFIX})
+  find_library(VICON_BOOST_CHRONO_LIB boost_chrono-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_DATE_TIME_LIB boost_date_time-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_FILESYSTEM_LIB boost_filesystem-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_LOCALE_LIB boost_locale-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_SERIALIZATION_LIB boost_serialization-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_SYSTEM_LIB boost_system-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_THREAD_LIB boost_thread-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_UNIT_TEST_LIB boost_unit_test_framework-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  find_library(VICON_BOOST_WAVE_LIB boost_wave-mt ${SDK_DIR} NO_DEFAULT_PATH)
+  unset(VICON_BOOST_LIB_SUFFIX)
+  set(VICON_BOOST_LIBS ${VICON_BOOST_CHRONO_LIB} ${VICON_BOOST_DATE_TIME_LIB}
+    ${VICON_BOOST_FILESYSTEM_LIB} ${VICON_BOOST_LOCALE_LIB}
+    ${VICON_BOOST_SERIALIZATION_LIB} ${VICON_BOOST_SYSTEM_LIB}
+    ${VICON_BOOST_THREAD_LIB} ${VICON_BOOST_UNIT_TEST_LIB}
+    ${VICON_BOOST_WAVE_LIB})
+endif()
+#message(STATUS "SDK_DIR: ${SDK_DIR}")
+#message(STATUS "VICON_BOOST_LIBS: ${VICON_BOOST_LIBS}")
+
+find_library(VICON_SDK_LIB ViconDataStreamSDK_CPP ${SDK_DIR} NO_DEFAULT_PATH)
+find_library(VICON_DEBUG_SERVICES_LIB DebugServices ${SDK_DIR} NO_DEFAULT_PATH)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+find_package(Eigen REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+# Support new yaml-cpp API (yaml-cpp>=0.5)
+if(${YAMLCPP_FOUND})
+  if(NOT(${YAMLCPP_VERSION} VERSION_LESS 0.5))
+    add_definitions(-DHAVE_NEW_YAMLCPP)
+  endif()
+endif()
+
+catkin_package(CATKIN_DEPENDS
+  DEPENDS Eigen YAMLCPP
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME})
+
+# Force "no-as-needed", required for ViconSDK lib
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-as-needed")
+set(CMAKE_INSTALL_RPATH
+  "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}")
+
+include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIRS}
+  ${YAMLCPP_INCLUDE_DIRS})
+
+add_library(${PROJECT_NAME} SHARED src/vicon_driver.cpp src/vicon_calib.cpp)
+target_link_libraries(${PROJECT_NAME} ${VICON_BOOST_LIBS}
+  ${VICON_DEBUG_SERVICES_LIB} ${VICON_SDK_LIB} ${YAMLCPP_LIBRARIES})
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+
+install(DIRECTORY ${SDK_DIR}/
+  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}
+  PATTERN "*.h" EXCLUDE)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})

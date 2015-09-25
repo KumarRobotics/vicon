@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <name>vicon_driver</name>
+  <version>0.0.2</version>
+  <description>The vicon_driver package</description>
+  <maintainer email="kmohta@seas.upenn.edu">Kartik Mohta</maintainer>
+  <maintainer email="quchao@seas.upenn.edu">Chao Qu</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>yaml-cpp</build_depend>
+  <build_depend>eigen</build_depend>
+
+  <run_depend>yaml-cpp</run_depend>
+
+</package>
