@@ -9,8 +9,9 @@
     output="$(arg output)" ns="vicon">
     <param name="child_frame_id" type="string" value="$(arg child_frame_id)"/>
     <param name="publish_tf" type="bool" value="$(arg publish_tf)"/>
+    <param name="max_accel" value="10.0"/>
     <param name="vicon_fps" type="int" value="$(arg vicon_fps)"/>
     <remap from="~vicon_subject" to="$(arg model)"/>
-    <remap from="~odom" to="/$(arg model)/odom"/>
+    <remap from="~odom" to="/romeo/odom"/>
   </node>
 </launch>

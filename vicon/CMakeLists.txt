@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vicon)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
 
 # set default build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
-find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs std_srvs
+find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs std_srvs rosbag
   message_generation cmake_modules vicon_driver)
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -28,6 +29,12 @@ add_dependencies(vicon ${catkin_EXPORTED_TARGETS} vicon_generate_messages_cpp)
 add_executable(vicon_calibrate src/vicon_calibrate.cpp)
 target_link_libraries(vicon_calibrate ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(vicon_calibrate ${catkin_EXPORTED_TARGETS} vicon_generate_messages_cpp)
+
+add_executable(markers  src/markers.cpp)
+target_link_libraries(markers ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(bag_reader src/bag_reader.cpp)
+target_link_libraries(bag_reader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS vicon vicon_calibrate
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

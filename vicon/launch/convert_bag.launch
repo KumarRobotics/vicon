@@ -1,0 +1,10 @@
+<launch>
+  <node pkg="vicon"
+    name="bag_reader"
+    type="bag_reader"
+    output="screen">
+    <param name="file" value="/home/sikang/icra_vision_ws/src/bags/2017-09-12-22-06-15.bag"/>
+    <param name="topic" value="/vicon/unlabeled_markers"/>
+  </node>
+
+</launch>
