@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vicon_odom)
 
-# set default build type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif()
-
 find_package(catkin REQUIRED COMPONENTS vicon tf2_ros)
 
 catkin_package(CATKIN_DEPENDS vicon tf2_ros)

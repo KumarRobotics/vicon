@@ -1,4 +1,3 @@
-// Visualize unlabeled markers
 #include <ros/ros.h>
 #include <vicon/Markers.h>
 #include <sensor_msgs/PointCloud.h>

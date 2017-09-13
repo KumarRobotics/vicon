@@ -1,9 +1,8 @@
 <launch>
   <node pkg="vicon"
-    type="markers"
-    name="markers"
+    type="visualize_markers"
+    name="visualize_markers"
     output="screen">
     <remap from="~markers" to="/vicon/unlabeled_markers"/>
   </node>
-
 </launch>

@@ -235,8 +235,7 @@ bool loadCalibMarkerPos(const std::string &filename,
         pos[0] >> position.x();
         pos[1] >> position.y();
         pos[2] >> position.z();
-        marker_pos_map.insert(
-            std::make_pair<std::string, Eigen::Vector3d>(name, position));
+        marker_pos_map.insert(std::make_pair(name, position));
       }
       ret = true;
     }

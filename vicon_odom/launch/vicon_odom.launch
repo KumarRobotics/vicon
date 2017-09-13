@@ -12,6 +12,6 @@
     <param name="max_accel" value="10.0"/>
     <param name="vicon_fps" type="int" value="$(arg vicon_fps)"/>
     <remap from="~vicon_subject" to="$(arg model)"/>
-    <remap from="~odom" to="/romeo/odom"/>
+    <remap from="~odom" to="/$(arg model)/odom"/>
   </node>
 </launch>

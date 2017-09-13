@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vicon_driver CXX)
 
-# set default build type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif()
-
 find_package(catkin REQUIRED)
 
 # Only for enforcing minimum Boost version required for the Vicon SDK lib
@@ -53,8 +48,7 @@ endif()
 find_library(VICON_SDK_LIB ViconDataStreamSDK_CPP ${SDK_DIR} NO_DEFAULT_PATH)
 find_library(VICON_DEBUG_SERVICES_LIB DebugServices ${SDK_DIR} NO_DEFAULT_PATH)
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
@@ -66,7 +60,7 @@ if(${YAMLCPP_FOUND})
 endif()
 
 catkin_package(CATKIN_DEPENDS
-  DEPENDS Eigen YAMLCPP
+  DEPENDS EIGEN3 YAMLCPP
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME})
 
@@ -75,7 +69,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-as-needed")
 set(CMAKE_INSTALL_RPATH
   "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/${PROJECT_NAME}")
 
-include_directories(include ${SDK_DIR} ${Eigen_INCLUDE_DIRS}
+include_directories(include ${SDK_DIR} ${EIGEN3_INCLUDE_DIRS}
   ${YAMLCPP_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED src/vicon_driver.cpp src/vicon_calib.cpp)
