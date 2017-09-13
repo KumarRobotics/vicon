@@ -3,7 +3,7 @@ project(vicon)
 
 find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs std_srvs
   message_generation cmake_modules vicon_driver)
-find_package(Eigen3 REQUIRED)
+find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 
 add_message_files(DIRECTORY msg)
@@ -12,9 +12,9 @@ generate_messages(DEPENDENCIES nav_msgs geometry_msgs)
 
 catkin_package(CATKIN_DEPENDS roscpp geometry_msgs nav_msgs std_srvs
   message_runtime cmake_modules vicon_driver
-  DEPENDS EIGEN3 Boost)
+  DEPENDS Eigen Boost)
 
-include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS} ${Eigen_INCLUDE_DIRS})
 
 add_executable(vicon src/vicon.cpp)
 target_link_libraries(vicon ${catkin_LIBRARIES} ${Boost_LIBRARIES})
