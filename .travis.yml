@@ -12,7 +12,7 @@ before_install: # Use this to prepare the system to install prerequisites or dep
 install: # Use this to install any prerequisites or dependencies necessary to run your build
   - export ROS_DISTRO=indigo
   - sudo apt-get install -q -y ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-common-msgs ros-$ROS_DISTRO-tf2-ros
-    ros-$ROS_DISTRO-cmake-modules libeigen3-dev yaml-cpp
+    ros-$ROS_DISTRO-cmake-modules libeigen3-dev libyaml-cpp-dev
   # Setup rosdep
   - sudo rosdep init
   - rosdep update
