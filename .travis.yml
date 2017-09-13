@@ -1,24 +1,22 @@
-language:
-  - cpp
-compiler:
-  - gcc
+sudo: required
+dist: trusty
+language: minimal # Force travis to use its minimal image with default Python settings
 notifications:
   email:
     recipients:
       - kartikmohta@gmail.com
 before_install: # Use this to prepare the system to install prerequisites or dependencies
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update -q
 install: # Use this to install any prerequisites or dependencies necessary to run your build
-  - export ROS_DISTRO=hydro
+  - export ROS_DISTRO=indigo
   - sudo apt-get install -q -y ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-common-msgs ros-$ROS_DISTRO-tf2-ros
     ros-$ROS_DISTRO-cmake-modules libeigen3-dev yaml-cpp
   # Setup rosdep
   - sudo rosdep init
   - rosdep update
 before_script: # Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
-  - sed -i 's/Boost 1.53 REQUIRED/Boost 1.46 REQUIRED/' vicon_driver/CMakeLists.txt # Just because travis uses Ubuntu 12.04
   - export CI_SOURCE_PATH=$(pwd)
   - export REPOSITORY_NAME=${PWD##*/}
   - echo "Testing branch $TRAVIS_BRANCH of $REPOSITORY_NAME"
